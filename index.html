@@ -8,9 +8,9 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
 :root {
-  --sage:         #8FAF8A;
-  --sage-dark:    #5C7A58;
-  --sage-deep:    #1E2D4A;
+  --sage:         #729985;
+  --sage-dark:    #5C8472;
+  --sage-deep:    #729985;
   --sage-light:   #EEF3ED;
   --sage-mid:     #C2D4BF;
   --terracotta:   #C4673A;
@@ -38,21 +38,21 @@ body { font-family: var(--font-sans); background: var(--cream); color: var(--nav
 .layout { display: grid; grid-template-columns: 256px 1fr; min-height: 100vh; }
 
 /* ── SIDEBAR ── */
-.sidebar { background: var(--navy); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.sidebar { background: #729985; padding: 2rem 1.5rem; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
 .sidebar-logo { margin-bottom: 2.5rem; }
-.sidebar-logo .mc { font-family: var(--font-serif); font-size: 22px; color: var(--tan); line-height: 1.1; }
-.sidebar-logo .product-name { font-size: 11px; color: rgba(212,184,150,0.6); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 6px; }
-.sidebar-logo .product-full { font-size: 9px; color: rgba(212,184,150,0.35); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; line-height: 1.4; }
+.sidebar-logo .mc { font-family: var(--font-serif); font-size: 22px; color: #F5EFE6; line-height: 1.1; }
+.sidebar-logo .product-name { font-size: 11px; color: rgba(245,239,230,0.6); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 6px; }
+.sidebar-logo .product-full { font-size: 9px; color: rgba(245,239,230,0.4); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; line-height: 1.4; }
 .sidebar-logo .brand { display: none; }
 
 .nav-section { margin-bottom: 2rem; }
-.nav-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(212,184,150,0.4); margin-bottom: 8px; padding-left: 12px; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; cursor: pointer; color: rgba(212,184,150,0.6); font-size: 13px; transition: all 0.15s; border: none; background: none; width: 100%; text-align: left; }
-.nav-item:hover { background: rgba(255,255,255,0.06); color: var(--tan); }
+.nav-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(245,239,230,0.4); margin-bottom: 8px; padding-left: 12px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; cursor: pointer; color: rgba(245,239,230,0.65); font-size: 13px; transition: all 0.15s; border: none; background: none; width: 100%; text-align: left; }
+.nav-item:hover { background: rgba(255,255,255,0.1); color: #F5EFE6; }
 .nav-item.active { background: var(--terracotta); color: white; }
 .nav-item .icon { width: 16px; text-align: center; font-size: 14px; flex-shrink: 0; }
 
-.sidebar-footer { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08); font-size: 11px; color: rgba(212,184,150,0.35); line-height: 1.7; }
+.sidebar-footer { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.15); font-size: 11px; color: rgba(245,239,230,0.35); line-height: 1.7; }
 
 /* ── MAIN ── */
 .main { padding: 2rem 2.5rem; padding-bottom: 50px; }
@@ -63,12 +63,12 @@ body { font-family: var(--font-sans); background: var(--cream); color: var(--nav
 .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 
 /* ── API BANNER ── */
-.api-banner { background: var(--navy); border-radius: 10px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 14px; margin-bottom: 1.5rem; }
-.api-banner label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(212,184,150,0.6); white-space: nowrap; }
-.api-banner input { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: var(--tan); border-radius: 8px; padding: 8px 12px; font-family: var(--font-mono); font-size: 12px; flex: 1; }
-.api-banner input::placeholder { color: rgba(212,184,150,0.35); }
+.api-banner { background: #729985; border-radius: 10px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 14px; margin-bottom: 1.5rem; }
+.api-banner label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(245,239,230,0.6); white-space: nowrap; }
+.api-banner input { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #F5EFE6; border-radius: 8px; padding: 8px 12px; font-family: var(--font-mono); font-size: 12px; flex: 1; }
+.api-banner input::placeholder { color: rgba(245,239,230,0.3); }
 .api-banner input:focus { outline: none; border-color: var(--terracotta); }
-.key-ok { color: var(--sage); font-size: 11px; white-space: nowrap; }
+.key-ok { color: #C8E6C9; font-size: 11px; white-space: nowrap; }
 .key-bad { color: var(--terracotta); font-size: 11px; white-space: nowrap; }
 
 /* ── CARDS ── */
@@ -194,7 +194,7 @@ textarea { resize: vertical; min-height: 100px; font-family: var(--font-sans); f
 .history-meta { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
 
 /* ── STATUS BAR ── */
-.status-bar { position: fixed; bottom: 0; right: 0; left: 256px; background: var(--navy); padding: 6px 2.5rem; display: flex; align-items: center; gap: 16px; font-size: 11px; color: rgba(212,184,150,0.4); z-index: 100; }
+.status-bar { position: fixed; bottom: 0; right: 0; left: 256px; background: #5C8472; padding: 6px 2.5rem; display: flex; align-items: center; gap: 16px; font-size: 11px; color: rgba(245,239,230,0.4); z-index: 100; }
 .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sage-mid); }
 .status-dot.idle { background: rgba(168,201,176,0.3); }
 .status-dot.running { background: var(--sage-mid); animation: pulse 1s infinite; }
