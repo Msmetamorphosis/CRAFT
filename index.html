@@ -41,8 +41,8 @@ body { font-family: var(--font-sans); background: var(--cream); color: var(--nav
 .sidebar { background: #729985; padding: 2rem 1.5rem; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
 .sidebar-logo { margin-bottom: 2.5rem; }
 .sidebar-logo .mc { font-family: var(--font-serif); font-size: 22px; color: #F5EFE6; line-height: 1.1; }
-.sidebar-logo .product-name { font-size: 11px; color: var(--terracotta); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 6px; }
-.sidebar-logo .product-full { font-size: 9px; color: rgba(196,103,58,0.7); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; line-height: 1.4; }
+.sidebar-logo .product-name { font-size: 11px; color: var(--terracotta); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 8px; background: rgba(245,239,230,0.15); padding: 4px 8px; border-radius: 6px; display: inline-block; }
+.sidebar-logo .product-full { font-size: 9px; color: rgba(196,103,58,0.9); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; line-height: 1.4; background: rgba(245,239,230,0.15); padding: 3px 8px; border-radius: 6px; display: inline-block; }
 .sidebar-logo .brand { display: none; }
 
 .nav-section { margin-bottom: 2rem; }
@@ -52,7 +52,7 @@ body { font-family: var(--font-sans); background: var(--cream); color: var(--nav
 .nav-item.active { background: var(--terracotta); color: white; }
 .nav-item .icon { width: 16px; text-align: center; font-size: 14px; flex-shrink: 0; }
 
-.sidebar-footer { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid rgba(196,103,58,0.3); font-size: 11px; color: var(--terracotta); line-height: 1.7; }
+.sidebar-footer { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid rgba(196,103,58,0.3); font-size: 11px; color: var(--terracotta); line-height: 1.7; background: rgba(245,239,230,0.15); padding: 10px 12px; border-radius: 8px; }
 
 /* ── MAIN ── */
 .main { padding: 2rem 2.5rem; padding-bottom: 50px; }
@@ -231,6 +231,7 @@ textarea { resize: vertical; min-height: 100px; font-family: var(--font-sans); f
       <button class="nav-item active" onclick="showPage('analyze',this)"><span class="icon">◎</span> Prompt Analyzer</button>
       <button class="nav-item" onclick="showPage('results',this)"><span class="icon">◈</span> Results</button>
       <button class="nav-item" onclick="showPage('history',this)"><span class="icon">◷</span> History</button>
+      <button class="nav-item" onclick="showPage('compare',this)"><span class="icon">⇄</span> Compare</button>
     </div>
     <div class="nav-section">
       <div class="nav-label">Learn</div>
@@ -238,6 +239,7 @@ textarea { resize: vertical; min-height: 100px; font-family: var(--font-sans); f
     </div>
     <div class="nav-section">
       <div class="nav-label">Data</div>
+      <button class="nav-item" onclick="exportPDF()"><span class="icon">↓</span> Export PDF</button>
       <button class="nav-item" onclick="exportHistory()"><span class="icon">↑</span> Export History</button>
       <button class="nav-item" onclick="clearHistory()"><span class="icon">✕</span> Clear History</button>
     </div>
@@ -476,6 +478,66 @@ textarea { resize: vertical; min-height: 100px; font-family: var(--font-sans); f
           </div>
         </div>
 
+        <!-- Placeholder fill-in rerun -->
+        <div class="card" id="r-fillin-card" style="display:none;margin-bottom:1.25rem;border:2px solid rgba(201,168,76,0.4);background:linear-gradient(135deg,#FBF3DC,#FAF7F2)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+            <div>
+              <div class="card-title" style="color:#7D6000;margin-bottom:4px">Unlock the ceiling score</div>
+              <div style="font-size:13px;color:var(--navy)">Fill in the placeholders below to see what your prompt can truly achieve with complete context.</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;margin-left:16px">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:#7D6000;margin-bottom:4px">Current ceiling</div>
+              <div style="font-family:var(--font-serif);font-size:28px;color:var(--gold)" id="r-fillin-ceiling">—</div>
+            </div>
+          </div>
+          <div id="r-fillin-fields" style="margin-bottom:1rem"></div>
+          <div style="margin-bottom:1rem">
+            <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:6px">Resulting prompt preview</div>
+            <div id="r-fillin-preview" style="background:white;border:1px solid var(--border-tan);border-radius:8px;padding:12px;font-size:12px;font-family:var(--font-mono);white-space:pre-wrap;max-height:200px;overflow-y:auto;color:var(--navy)"></div>
+          </div>
+          <button onclick="rerunWithContext()" style="background:var(--gold);color:white;border:none;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-sans)" id="rerun-btn">Rerun with my context</button>
+        </div>
+
+        <!-- Ceiling rerun results -->
+        <div id="r-ceiling-results" style="display:none;margin-bottom:1.25rem">
+          <div class="card" style="border:2px solid rgba(114,153,133,0.4);background:linear-gradient(135deg,#EEF3ED,#FAF7F2)">
+            <div class="card-title" style="color:var(--sage-dark);margin-bottom:1rem">Three-way comparison — with your context filled in</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1rem">
+              <div style="text-align:center;padding:12px;background:rgba(196,103,58,0.08);border-radius:8px">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--rust);margin-bottom:4px">Original prompt</div>
+                <div style="font-family:var(--font-serif);font-size:24px;color:var(--rust)" id="cr-score-orig">—</div>
+              </div>
+              <div style="text-align:center;padding:12px;background:rgba(201,168,76,0.1);border-radius:8px">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:#7D6000;margin-bottom:4px">CRAFT improved</div>
+                <div style="font-family:var(--font-serif);font-size:24px;color:var(--gold)" id="cr-score-craft">—</div>
+              </div>
+              <div style="text-align:center;padding:12px;background:rgba(114,153,133,0.15);border-radius:8px">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--sage-dark);margin-bottom:4px">With your context</div>
+                <div style="font-family:var(--font-serif);font-size:24px;color:var(--sage-dark)" id="cr-score-filled">—</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+              <div>
+                <div style="font-size:11px;font-weight:500;color:var(--rust);margin-bottom:6px">Output from original</div>
+                <div id="cr-output-orig" style="font-size:12px;background:white;border-radius:8px;padding:10px;max-height:200px;overflow-y:auto;border:1px solid rgba(196,103,58,0.2)"></div>
+              </div>
+              <div>
+                <div style="font-size:11px;font-weight:500;color:#7D6000;margin-bottom:6px">Output from CRAFT improved</div>
+                <div id="cr-output-craft" style="font-size:12px;background:white;border-radius:8px;padding:10px;max-height:200px;overflow-y:auto;border:1px solid rgba(201,168,76,0.2)"></div>
+              </div>
+              <div>
+                <div style="font-size:11px;font-weight:500;color:var(--sage-dark);margin-bottom:6px">Output with your context</div>
+                <div id="cr-output-filled" style="font-size:12px;background:white;border-radius:8px;padding:10px;max-height:200px;overflow-y:auto;border:1px solid rgba(114,153,133,0.2)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Export PDF button -->
+        <div style="margin-bottom:2rem">
+          <button onclick="exportPDF()" style="background:var(--navy);color:white;border:none;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-sans)">↓ Export full analysis as PDF</button>
+        </div>
+
       </div>
     </div>
 
@@ -505,6 +567,122 @@ textarea { resize: vertical; min-height: 100px; font-family: var(--font-sans); f
       </div>
       <div class="card">
         <div id="history-list" style="font-size:13px;color:var(--text-muted)">No history yet.</div>
+      </div>
+    </div>
+
+    <!-- ── COMPARE PAGE ── -->
+    <div id="page-compare" class="page">
+      <div class="page-header">
+        <h2>Prompt Comparison</h2>
+        <p>Select two analyses from your history to compare them side by side and track your improvement over time.</p>
+      </div>
+      <div class="card" style="margin-bottom:1.25rem">
+        <div class="card-title">Select two analyses to compare</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1rem">
+          <div>
+            <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);display:block;margin-bottom:6px">Analysis A</label>
+            <select id="compare-sel-a" style="width:100%;padding:9px 12px;font-size:13px;font-family:var(--font-sans);border:1px solid var(--border-tan);border-radius:8px;background:var(--cream);color:var(--navy)">
+              <option value="">Select an analysis...</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);display:block;margin-bottom:6px">Analysis B</label>
+            <select id="compare-sel-b" style="width:100%;padding:9px 12px;font-size:13px;font-family:var(--font-sans);border:1px solid var(--border-tan);border-radius:8px;background:var(--cream);color:var(--navy)">
+              <option value="">Select an analysis...</option>
+            </select>
+          </div>
+        </div>
+        <button onclick="runComparison()" style="background:var(--terracotta);color:white;border:none;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-sans)">Compare analyses</button>
+      </div>
+
+      <div id="compare-results" style="display:none">
+        <!-- Score comparison -->
+        <div class="card" style="margin-bottom:1.25rem">
+          <div class="card-title">Score comparison</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+            <div>
+              <div style="font-size:12px;font-weight:500;color:var(--text-muted);margin-bottom:12px" id="compare-label-a">Analysis A</div>
+              <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+                <div style="text-align:center">
+                  <div style="font-size:10px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Task type</div>
+                  <span class="badge badge-sage" id="compare-task-a">—</span>
+                </div>
+                <div style="text-align:center">
+                  <div style="font-size:10px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Original score</div>
+                  <div style="font-family:var(--font-serif);font-size:24px;color:var(--rust)" id="compare-orig-a">—</div>
+                </div>
+                <div style="font-size:20px;color:var(--text-muted)">→</div>
+                <div style="text-align:center">
+                  <div style="font-size:10px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Improved score</div>
+                  <div style="font-family:var(--font-serif);font-size:24px;color:var(--sage-dark)" id="compare-new-a">—</div>
+                </div>
+                <div style="text-align:center">
+                  <div style="font-size:10px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Prompt lift</div>
+                  <div style="font-family:var(--font-serif);font-size:24px;color:var(--sage-dark)" id="compare-lift-a">—</div>
+                </div>
+              </div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Original prompt</div>
+              <div id="compare-prompt-a" style="font-size:12px;background:var(--terra-light);border-radius:8px;padding:10px;max-height:120px;overflow-y:auto;border:1px solid rgba(196,103,58,0.2);margin-bottom:8px;font-style:italic;color:var(--rust)"></div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Improved prompt</div>
+              <div id="compare-improved-a" style="font-size:12px;background:var(--sage-light);border-radius:8px;padding:10px;max-height:120px;overflow-y:auto;border:1px solid rgba(114,153,133,0.2)"></div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:500;color:var(--text-muted);margin-bottom:12px" id="compare-label-b">Analysis B</div>
+              <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+                <div style="text-align:center">
+                  <div style="font-size:10px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Task type</div>
+                  <span class="badge badge-sage" id="compare-task-b">—</span>
+                </div>
+                <div style="text-align:center">
+                  <div style="font-size:10px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Original score</div>
+                  <div style="font-family:var(--font-serif);font-size:24px;color:var(--rust)" id="compare-orig-b">—</div>
+                </div>
+                <div style="font-size:20px;color:var(--text-muted)">→</div>
+                <div style="text-align:center">
+                  <div style="font-size:10px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Improved score</div>
+                  <div style="font-family:var(--font-serif);font-size:24px;color:var(--sage-dark)" id="compare-new-b">—</div>
+                </div>
+                <div style="text-align:center">
+                  <div style="font-size:10px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Prompt lift</div>
+                  <div style="font-family:var(--font-serif);font-size:24px;color:var(--sage-dark)" id="compare-lift-b">—</div>
+                </div>
+              </div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Original prompt</div>
+              <div id="compare-prompt-b" style="font-size:12px;background:var(--terra-light);border-radius:8px;padding:10px;max-height:120px;overflow-y:auto;border:1px solid rgba(196,103,58,0.2);margin-bottom:8px;font-style:italic;color:var(--rust)"></div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Improved prompt</div>
+              <div id="compare-improved-b" style="font-size:12px;background:var(--sage-light);border-radius:8px;padding:10px;max-height:120px;overflow-y:auto;border:1px solid rgba(114,153,133,0.2)"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- What changed between analyses -->
+        <div class="card" style="margin-bottom:1.25rem">
+          <div class="card-title">What you learned between these two prompts</div>
+          <div id="compare-insight" style="font-size:13px;color:var(--navy);line-height:1.7"></div>
+        </div>
+
+        <!-- Output comparison -->
+        <div class="card" style="margin-bottom:1.25rem">
+          <div class="card-title">Output quality comparison</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div>
+              <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-bottom:6px">Analysis A outputs</div>
+              <div style="display:flex;gap:16px;margin-bottom:8px">
+                <div style="text-align:center"><div style="font-size:10px;color:var(--text-muted)">Original</div><div style="font-family:var(--font-serif);font-size:20px;color:var(--rust)" id="compare-out-orig-a">—</div></div>
+                <div style="font-size:16px;color:var(--text-muted);margin-top:8px">→</div>
+                <div style="text-align:center"><div style="font-size:10px;color:var(--text-muted)">Improved</div><div style="font-family:var(--font-serif);font-size:20px;color:var(--sage-dark)" id="compare-out-new-a">—</div></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-bottom:6px">Analysis B outputs</div>
+              <div style="display:flex;gap:16px;margin-bottom:8px">
+                <div style="text-align:center"><div style="font-size:10px;color:var(--text-muted)">Original</div><div style="font-family:var(--font-serif);font-size:20px;color:var(--rust)" id="compare-out-orig-b">—</div></div>
+                <div style="font-size:16px;color:var(--text-muted);margin-top:8px">→</div>
+                <div style="text-align:center"><div style="font-size:10px;color:var(--text-muted)">Improved</div><div style="font-family:var(--font-serif);font-size:20px;color:var(--sage-dark)" id="compare-out-new-b">—</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -624,6 +802,7 @@ function showPage(name, btn) {
   if(name==='history') renderHistory();
   if(name==='results') renderResults();
   if(name==='guide') renderGuide('extraction');
+  if(name==='compare') populateCompareSelects();
 }
 
 // ── API key ───────────────────────────────────────────────────────────────────
@@ -888,20 +1067,45 @@ async function runAnalysis() {
   renderBars(originalAudit,'r-orig-criteria-bars','terracotta');
   renderBars(improvedAudit,'r-new-criteria-bars','sage');
 
-  // Save to history
+  // Build placeholder fill-in section if placeholders exist
+  const allPlaceholders = rewriteData.placeholders_added||[];
+  if(allPlaceholders.length) {
+    buildFillInSection(
+      allPlaceholders,
+      rewriteData.rewritten_prompt||'',
+      complete.ceiling_score||0,
+      originalOutput,
+      Math.round(complete.output_score_before||0),
+      Math.round(complete.output_score_after||0)
+    );
+  }
+
+  // Save to history - store full data for compare and PDF
   const historyEntry = {
     id: Date.now(),
     timestamp: new Date().toISOString(),
-    prompt: prompt.slice(0,100)+'...',
+    prompt: prompt,
+    promptPreview: prompt.slice(0,120)+'...',
+    context: context||'',
     task_type: classification.task_type||'unknown',
     task_label: classification.task_label||'Unknown',
+    task_reasoning: classification.reasoning||'',
     prompt_score_before: complete.prompt_score_before||0,
     prompt_score_after:  complete.prompt_score_after||0,
     output_score_before: complete.output_score_before||0,
     output_score_after:  complete.output_score_after||0,
     prompt_lift:  complete.prompt_lift||0,
     output_lift:  complete.output_lift||0,
-    ceiling_score: complete.ceiling_score||0
+    ceiling_score: complete.ceiling_score||0,
+    rewritten_prompt: rewriteData.rewritten_prompt||'',
+    original_output: originalOutput,
+    improved_output: improvedOutput,
+    changes_made: rewriteData.changes_made||[],
+    placeholders: rewriteData.placeholders_added||[],
+    original_audit_summary: originalAudit.summary||'',
+    improved_audit_summary: improvedAudit.summary||'',
+    orig_audit: originalAudit,
+    improved_audit: improvedAudit
   };
   history.unshift(historyEntry);
   if(history.length>50) history.pop();
@@ -912,6 +1116,280 @@ async function runAnalysis() {
   running=false;
   document.getElementById('analyze-btn').disabled=false;
   document.getElementById('analyze-btn').textContent='Analyze and Improve Prompt';
+}
+
+// ── Placeholder fill-in and rerun ─────────────────────────────────────────────
+let _currentRewrittenPrompt = '';
+let _currentOrigOutput = '';
+let _currentCraftOutput = '';
+let _currentOrigScore = 0;
+let _currentCraftScore = 0;
+
+function buildFillInSection(placeholders, rewrittenPrompt, ceilingScore, origOutput, origScore, craftScore) {
+  _currentRewrittenPrompt = rewrittenPrompt;
+  _currentOrigOutput = origOutput;
+  _currentCraftOutput = document.getElementById('r-new-output').textContent;
+  _currentOrigScore = origScore;
+  _currentCraftScore = craftScore;
+
+  if(!placeholders || !placeholders.length) return;
+
+  const card = document.getElementById('r-fillin-card');
+  card.style.display = 'block';
+  document.getElementById('r-fillin-ceiling').textContent = Math.round(ceilingScore)+'/100';
+
+  const fields = document.getElementById('r-fillin-fields');
+  fields.innerHTML = placeholders.map((p,i) => `
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:500;color:#7D6000;display:block;margin-bottom:4px;font-family:var(--font-mono)">${p.placeholder||''}</label>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">${p.what_to_fill||''}</div>
+      <input type="text" id="fillin-${i}" placeholder="Enter your value here..."
+        style="width:100%;padding:8px 12px;font-size:13px;font-family:var(--font-sans);border:1px solid rgba(201,168,76,0.4);border-radius:8px;background:white;color:var(--navy)"
+        oninput="updatePreview()" />
+    </div>`).join('');
+
+  updatePreview();
+}
+
+function updatePreview() {
+  let filled = _currentRewrittenPrompt;
+  const placeholders = document.querySelectorAll('[id^="fillin-"]');
+  placeholders.forEach((input, i) => {
+    const label = input.previousElementSibling.previousElementSibling.textContent;
+    const val = input.value.trim();
+    if(val) filled = filled.replace(label, val);
+  });
+  document.getElementById('r-fillin-preview').textContent = filled;
+}
+
+async function rerunWithContext() {
+  const apiKey = document.getElementById('api-key').value.trim();
+  if(!apiKey.startsWith('sk-ant-')) { alert('API key required.'); return; }
+
+  // Build filled prompt
+  let filledPrompt = _currentRewrittenPrompt;
+  document.querySelectorAll('[id^="fillin-"]').forEach((input, i) => {
+    const label = input.previousElementSibling.previousElementSibling.textContent;
+    if(input.value.trim()) filledPrompt = filledPrompt.replace(label, input.value.trim());
+  });
+
+  const btn = document.getElementById('rerun-btn');
+  btn.textContent = 'Running...';
+  btn.disabled = true;
+
+  try {
+    const resp = await fetch(`${BACKEND}/api/analyze`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({api_key:apiKey, prompt:filledPrompt, context:'', task_type:'auto', model:'claude-opus-4-5'})
+    });
+
+    if(!resp.ok) throw new Error('Backend error');
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let currentEventType = '';
+    let filledOutput = '';
+    let filledScore = 0;
+
+    while(true) {
+      const {done, value} = await reader.read();
+      if(value) buffer += decoder.decode(value,{stream:true});
+      const lines = buffer.split('\n');
+      buffer = done ? '' : lines.pop();
+      for(const line of lines) {
+        if(line.startsWith('event:')) { currentEventType = line.slice(6).trim(); continue; }
+        if(!line.startsWith('data:')) continue;
+        const raw = line.slice(5).trim();
+        if(!raw) continue;
+        let msg;
+        try { msg = JSON.parse(raw); } catch { continue; }
+        if(!msg.event && currentEventType) msg.event = currentEventType;
+        currentEventType = '';
+        if(msg.event === 'original_output') filledOutput = msg.output||'';
+        if(msg.event === 'original_eval') filledScore = Math.round(msg.total_score||0);
+      }
+      if(done) break;
+    }
+
+    // Show three-way comparison
+    document.getElementById('r-ceiling-results').style.display = 'block';
+    document.getElementById('cr-score-orig').textContent = _currentOrigScore+'/100';
+    document.getElementById('cr-score-craft').textContent = _currentCraftScore+'/100';
+    document.getElementById('cr-score-filled').textContent = filledScore+'/100';
+    document.getElementById('cr-output-orig').textContent = _currentOrigOutput;
+    document.getElementById('cr-output-craft').textContent = _currentCraftOutput;
+    document.getElementById('cr-output-filled').textContent = filledOutput;
+    document.getElementById('cr-ceiling-results').scrollIntoView({behavior:'smooth'});
+
+  } catch(e) {
+    alert('Error running rerun: '+e.message);
+  }
+
+  btn.textContent = 'Rerun with my context';
+  btn.disabled = false;
+}
+
+// ── PDF Export ────────────────────────────────────────────────────────────────
+function exportPDF() {
+  const resultsSection = document.getElementById('results-section');
+  if(!resultsSection || resultsSection.style.display === 'none') {
+    alert('Run an analysis first before exporting PDF.');
+    return;
+  }
+
+  const printWindow = window.open('', '_blank');
+  const styles = `
+    <style>
+      body { font-family: 'Georgia', serif; color: #1E2D4A; padding: 40px; max-width: 900px; margin: 0 auto; font-size: 13px; line-height: 1.6; }
+      h1 { font-size: 24px; color: #1E2D4A; margin-bottom: 4px; }
+      h2 { font-size: 16px; color: #729985; margin: 24px 0 8px; text-transform: uppercase; letter-spacing: 0.07em; font-size: 11px; }
+      .meta { color: #8A7560; font-size: 12px; margin-bottom: 24px; }
+      .score-row { display: flex; gap: 24px; margin-bottom: 20px; }
+      .score-box { text-align: center; padding: 12px 20px; border-radius: 8px; min-width: 100px; }
+      .score-box.orig { background: #FAEDE6; }
+      .score-box.craft { background: #EEF3ED; }
+      .score-val { font-size: 28px; font-weight: bold; }
+      .score-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: #8A7560; margin-top: 4px; }
+      .section { margin-bottom: 20px; padding: 16px; border: 1px solid #e8e0d6; border-radius: 8px; }
+      .section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: #8A7560; margin-bottom: 8px; }
+      .prompt-text { font-style: italic; color: #9B3A1E; background: #FAEDE6; padding: 10px; border-radius: 6px; margin-bottom: 8px; white-space: pre-wrap; }
+      .improved-text { background: #EEF3ED; padding: 10px; border-radius: 6px; white-space: pre-wrap; }
+      .change-item { margin-bottom: 6px; padding-left: 16px; position: relative; font-size: 12px; }
+      .change-item::before { content: '•'; position: absolute; left: 0; color: #729985; }
+      .change-reason { color: #8A7560; font-size: 11px; }
+      .bar-row { margin-bottom: 8px; }
+      .bar-label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
+      .bar-track { height: 5px; background: #F5EFE6; border-radius: 3px; }
+      .bar-fill { height: 100%; border-radius: 3px; }
+      .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      @media print { body { padding: 20px; } }
+    </style>`;
+
+  const now = new Date().toLocaleString();
+  const pb = document.getElementById('r-score-before').textContent;
+  const pa = document.getElementById('r-score-after').textContent;
+  const pl = document.getElementById('r-prompt-lift').textContent;
+  const ol = document.getElementById('r-output-lift').textContent;
+  const cs = document.getElementById('r-ceiling').textContent;
+  const taskLabel = document.getElementById('r-task-label').textContent;
+  const taskReasoning = document.getElementById('r-task-reasoning').textContent;
+  const origPrompt = document.getElementById('r-orig-prompt').textContent;
+  const newPrompt = document.getElementById('r-new-prompt').textContent;
+  const origOutput = document.getElementById('r-orig-output').textContent;
+  const newOutput = document.getElementById('r-new-output').textContent;
+  const origSummary = document.getElementById('r-orig-summary').textContent;
+  const newSummary = document.getElementById('r-new-summary').textContent;
+  const changeItems = Array.from(document.querySelectorAll('#r-changes-list .change-item'))
+    .map(el => `<div class="change-item"><strong>${el.querySelector('div:first-child')?.textContent||''}</strong><div class="change-reason">${el.querySelector('.change-reason')?.textContent||''}</div></div>`).join('');
+  const origBars = document.getElementById('r-orig-criteria-bars').innerHTML;
+  const newBars = document.getElementById('r-new-criteria-bars').innerHTML;
+
+  printWindow.document.write(`<!DOCTYPE html><html><head><title>CRAFT Analysis Report</title>${styles}</head><body>
+    <h1>CRAFT Analysis Report</h1>
+    <div class="meta">Generated ${now} &nbsp;|&nbsp; Metamorphic Curations LLC &nbsp;|&nbsp; Task: ${taskLabel}</div>
+
+    <h2>Score Summary</h2>
+    <div class="score-row">
+      <div class="score-box orig"><div class="score-val" style="color:#C4673A">${pb}</div><div class="score-label">Original prompt</div></div>
+      <div class="score-box craft"><div class="score-val" style="color:#729985">${pa}</div><div class="score-label">Improved prompt</div></div>
+      <div class="score-box" style="background:#FBF3DC"><div class="score-val" style="color:#C9A84C">${pl}</div><div class="score-label">Prompt lift</div></div>
+      <div class="score-box" style="background:#FBF3DC"><div class="score-val" style="color:#C9A84C">${ol}</div><div class="score-label">Output lift</div></div>
+      <div class="score-box" style="background:#F5EFE6"><div class="score-val" style="color:#8A7560">${cs}</div><div class="score-label">Ceiling score</div></div>
+    </div>
+
+    <h2>Task Classification</h2>
+    <div class="section"><strong>${taskLabel}</strong> &nbsp; ${taskReasoning}</div>
+
+    <h2>Prompt Comparison</h2>
+    <div class="two-col">
+      <div><div class="section-title">Your original prompt</div><div class="prompt-text">${origPrompt}</div><div style="font-size:11px;color:#9B3A1E">${origSummary}</div></div>
+      <div><div class="section-title">CRAFT improved prompt</div><div class="improved-text">${newPrompt}</div><div style="font-size:11px;color:#5C8472">${newSummary}</div></div>
+    </div>
+
+    <h2>What CRAFT Improved</h2>
+    <div class="section">${changeItems}</div>
+
+    <h2>Output Comparison</h2>
+    <div class="two-col">
+      <div><div class="section-title">Output from original prompt</div><div class="prompt-text" style="max-height:300px;overflow:hidden">${origOutput}</div></div>
+      <div><div class="section-title">Output from improved prompt</div><div class="improved-text" style="max-height:300px;overflow:hidden">${newOutput}</div></div>
+    </div>
+
+    <h2>Score Breakdown by Criterion</h2>
+    <div class="two-col">
+      <div><div class="section-title">Original prompt</div>${origBars}</div>
+      <div><div class="section-title">Improved prompt</div>${newBars}</div>
+    </div>
+  </body></html>`);
+
+  printWindow.document.close();
+  setTimeout(()=>{ printWindow.print(); }, 500);
+}
+
+// ── Compare ───────────────────────────────────────────────────────────────────
+function populateCompareSelects() {
+  const selA = document.getElementById('compare-sel-a');
+  const selB = document.getElementById('compare-sel-b');
+  const opts = history.map((h,i) => `<option value="${h.id}">${new Date(h.timestamp).toLocaleTimeString()} — ${h.task_label} — ${h.promptPreview||h.prompt.slice(0,60)+'...'}</option>`).join('');
+  selA.innerHTML = '<option value="">Select an analysis...</option>'+opts;
+  selB.innerHTML = '<option value="">Select an analysis...</option>'+opts;
+}
+
+function runComparison() {
+  const idA = document.getElementById('compare-sel-a').value;
+  const idB = document.getElementById('compare-sel-b').value;
+  if(!idA || !idB) { alert('Select two analyses to compare.'); return; }
+  if(idA === idB) { alert('Select two different analyses.'); return; }
+
+  const a = history.find(h=>String(h.id)===String(idA));
+  const b = history.find(h=>String(h.id)===String(idB));
+  if(!a||!b) { alert('Could not find selected analyses.'); return; }
+
+  document.getElementById('compare-results').style.display = 'block';
+
+  // Labels
+  document.getElementById('compare-label-a').textContent = `Analysis A — ${new Date(a.timestamp).toLocaleTimeString()}`;
+  document.getElementById('compare-label-b').textContent = `Analysis B — ${new Date(b.timestamp).toLocaleTimeString()}`;
+
+  // Scores A
+  document.getElementById('compare-task-a').textContent = a.task_label||a.task_type;
+  document.getElementById('compare-orig-a').textContent = Math.round(a.prompt_score_before)+'/100';
+  document.getElementById('compare-new-a').textContent = Math.round(a.prompt_score_after)+'/100';
+  document.getElementById('compare-lift-a').textContent = (a.prompt_lift>=0?'+':'')+Math.round(a.prompt_lift)+'pp';
+  document.getElementById('compare-prompt-a').textContent = a.prompt||'';
+  document.getElementById('compare-improved-a').textContent = a.rewritten_prompt||'Not available — re-run this analysis to enable comparison';
+
+  // Scores B
+  document.getElementById('compare-task-b').textContent = b.task_label||b.task_type;
+  document.getElementById('compare-orig-b').textContent = Math.round(b.prompt_score_before)+'/100';
+  document.getElementById('compare-new-b').textContent = Math.round(b.prompt_score_after)+'/100';
+  document.getElementById('compare-lift-b').textContent = (b.prompt_lift>=0?'+':'')+Math.round(b.prompt_lift)+'pp';
+  document.getElementById('compare-prompt-b').textContent = b.prompt||'';
+  document.getElementById('compare-improved-b').textContent = b.rewritten_prompt||'Not available — re-run this analysis to enable comparison';
+
+  // Output scores
+  document.getElementById('compare-out-orig-a').textContent = Math.round(a.output_score_before)+'/100';
+  document.getElementById('compare-out-new-a').textContent = Math.round(a.output_score_after)+'/100';
+  document.getElementById('compare-out-orig-b').textContent = Math.round(b.output_score_before)+'/100';
+  document.getElementById('compare-out-new-b').textContent = Math.round(b.output_score_after)+'/100';
+
+  // Insight
+  const scoreDiff = Math.round(b.prompt_score_before) - Math.round(a.prompt_score_before);
+  const liftDiff = Math.round(b.prompt_lift) - Math.round(a.prompt_lift);
+  const sameType = a.task_type === b.task_type;
+  let insight = '';
+  if(scoreDiff > 0) insight += `Your original prompt quality improved by ${scoreDiff} points between these two analyses — you are writing clearer prompts before CRAFT even touches them. `;
+  else if(scoreDiff < 0) insight += `Analysis B started with a lower original score by ${Math.abs(scoreDiff)} points, which is normal when attempting more complex tasks. `;
+  else insight += `Both prompts started at similar quality levels. `;
+  if(liftDiff > 5) insight += `CRAFT found more room for improvement in Analysis B (+${Math.round(b.prompt_lift)}pp vs +${Math.round(a.prompt_lift)}pp lift), suggesting B had more structural gaps to close. `;
+  else if(liftDiff < -5) insight += `Analysis A showed greater CRAFT improvement (+${Math.round(a.prompt_lift)}pp vs +${Math.round(b.prompt_lift)}pp), suggesting you naturally wrote a better-structured prompt in B already. `;
+  if(!sameType) insight += `These prompts are different task types (${a.task_label} vs ${b.task_label}), so their scores use different rubrics and should not be directly compared on raw numbers — focus on the lift instead. `;
+  if(sameType) insight += `Both are ${a.task_label} tasks, so these scores are directly comparable. `;
+
+  document.getElementById('compare-insight').textContent = insight;
+  document.getElementById('compare-results').scrollIntoView({behavior:'smooth'});
 }
 
 // ── History ───────────────────────────────────────────────────────────────────
