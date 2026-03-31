@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CRAFT — Contextual Rewriting and Fidelity Tester</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --sage:         #5C8F6A;
+  --sage-dark:    #3D6B4A;
+  --sage-deep:    #2A4D35;
+  --sage-light:   #EAF2EC;
+  --sage-mid:     #A8C9B0;
+  --terracotta:   #C4673A;
+  --rust:         #9B3A1E;
+  --terra-light:  #FAEDE6;
+  --navy:         #1E2D4A;
+  --navy-mid:     #2E4268;
+  --tan:          #D4B896;
+  --tan-light:    #F5EFE6;
+  --cream:        #FAF7F2;
+  --gold:         #C9A84C;
+  --gold-light:   #FBF3DC;
+  --white:        #FFFFFF;
+  --border:       rgba(92,143,106,0.25);
+  --border-tan:   rgba(212,184,150,0.4);
+  --text-muted:   #6B8570;
+  --font-serif:   'DM Serif Display', Georgia, serif;
+  --font-sans:    'DM Sans', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); background: var(--cream); color: var(--navy); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+
+/* ── LAYOUT ── */
+.layout { display: grid; grid-template-columns: 256px 1fr; min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar { background: var(--sage-deep); padding: 2rem 1.5rem; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.sidebar-logo { margin-bottom: 2.5rem; }
+.logo-badge { width: 48px; height: 48px; border-radius: 12px; background: var(--terracotta); display: flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-size: 20px; color: white; margin-bottom: 10px; }
+.sidebar-logo .product-name { font-family: var(--font-serif); font-size: 24px; color: var(--sage-mid); line-height: 1; }
+.sidebar-logo .product-full { font-size: 9px; color: rgba(168,201,176,0.45); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; line-height: 1.4; }
+.sidebar-logo .brand { font-size: 10px; color: rgba(168,201,176,0.3); margin-top: 8px; }
+
+.nav-section { margin-bottom: 2rem; }
+.nav-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(168,201,176,0.35); margin-bottom: 8px; padding-left: 12px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; cursor: pointer; color: rgba(168,201,176,0.55); font-size: 13px; transition: all 0.15s; border: none; background: none; width: 100%; text-align: left; }
+.nav-item:hover { background: rgba(255,255,255,0.07); color: var(--sage-mid); }
+.nav-item.active { background: var(--terracotta); color: white; }
+.nav-item .icon { width: 16px; text-align: center; font-size: 14px; flex-shrink: 0; }
+
+.sidebar-footer { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.07); font-size: 11px; color: rgba(168,201,176,0.3); line-height: 1.7; }
+
+/* ── MAIN ── */
+.main { padding: 2rem 2.5rem; padding-bottom: 50px; }
+.page { display: none; }
+.page.active { display: block; }
+.page-header { margin-bottom: 2rem; }
+.page-header h2 { font-family: var(--font-serif); font-size: 30px; color: var(--sage-dark); font-weight: 400; }
+.page-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+/* ── API BANNER ── */
+.api-banner { background: var(--sage-deep); border-radius: 10px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 14px; margin-bottom: 1.5rem; }
+.api-banner label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sage-mid); white-space: nowrap; opacity: 0.7; }
+.api-banner input { background: rgba(255,255,255,0.07); border: 1px solid rgba(168,201,176,0.2); color: var(--sage-mid); border-radius: 8px; padding: 8px 12px; font-family: var(--font-mono); font-size: 12px; flex: 1; }
+.api-banner input::placeholder { color: rgba(168,201,176,0.25); }
+.api-banner input:focus { outline: none; border-color: var(--terracotta); }
+.key-ok { color: var(--sage-mid); font-size: 11px; white-space: nowrap; }
+.key-bad { color: var(--terracotta); font-size: 11px; white-space: nowrap; }
+
+/* ── CARDS ── */
+.card { background: var(--white); border: 1px solid var(--border-tan); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem; }
+.card-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 1.25rem; }
+.card.sage-tinted { background: var(--sage-light); border-color: rgba(92,143,106,0.2); }
+.card.terra-tinted { background: var(--terra-light); border-color: rgba(196,103,58,0.2); }
+
+/* ── METRIC CARDS ── */
+.metric-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 1.5rem; }
+.metric-card { background: var(--white); border: 1px solid var(--border-tan); border-radius: 10px; padding: 1.25rem; border-top: 3px solid var(--sage); }
+.metric-card.terra { border-top-color: var(--terracotta); }
+.metric-card.gold  { border-top-color: var(--gold); }
+.metric-card.navy  { border-top-color: var(--navy); }
+.metric-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 6px; }
+.metric-value { font-family: var(--font-serif); font-size: 30px; color: var(--navy); line-height: 1; }
+.metric-sub { font-size: 10px; color: var(--text-muted); margin-top: 5px; }
+
+/* ── FORMS ── */
+.form-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 1rem; }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1rem; }
+.form-group label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); display: block; margin-bottom: 6px; }
+select, input[type="text"], input[type="password"], textarea { width: 100%; padding: 9px 12px; font-size: 13px; font-family: var(--font-sans); border: 1px solid var(--border-tan); border-radius: 8px; background: var(--cream); color: var(--navy); transition: border-color 0.15s, box-shadow 0.15s; }
+select:focus, input:focus, textarea:focus { outline: none; border-color: var(--sage); box-shadow: 0 0 0 3px rgba(92,143,106,0.12); }
+textarea { resize: vertical; min-height: 100px; font-family: var(--font-sans); font-size: 13px; }
+
+/* ── BUTTONS ── */
+.btn { padding: 10px 22px; font-size: 13px; font-family: var(--font-sans); font-weight: 500; cursor: pointer; border-radius: 8px; transition: all 0.15s; border: none; }
+.btn-primary { background: var(--terracotta); color: white; width: 100%; padding: 13px; font-size: 14px; }
+.btn-primary:hover { background: var(--rust); }
+.btn-primary:disabled { background: var(--tan); cursor: not-allowed; }
+.btn-sage { background: var(--sage); color: white; }
+.btn-sage:hover { background: var(--sage-dark); }
+.btn-outline { background: transparent; color: var(--navy); border: 1px solid var(--border-tan); }
+.btn-outline:hover { background: var(--tan-light); }
+
+/* ── PIPELINE PROGRESS ── */
+.pipeline { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
+.pipeline-step { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 10px; background: var(--white); border: 1px solid var(--border-tan); transition: all 0.2s; }
+.pipeline-step.active { border-color: var(--sage); background: var(--sage-light); }
+.pipeline-step.done { border-color: rgba(92,143,106,0.3); background: var(--sage-light); opacity: 0.8; }
+.pipeline-step.error { border-color: rgba(196,103,58,0.3); background: var(--terra-light); }
+.step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--border-tan); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--text-muted); flex-shrink: 0; }
+.step-num.active { background: var(--sage); color: white; }
+.step-num.done { background: var(--sage-dark); color: white; }
+.step-num.error { background: var(--terracotta); color: white; }
+.step-label { font-size: 13px; color: var(--navy); flex: 1; }
+.step-status { font-size: 11px; color: var(--text-muted); }
+.step-status.running { color: var(--sage); }
+.step-status.done { color: var(--sage-dark); }
+.step-status.error { color: var(--terracotta); }
+
+/* ── SCORE DISPLAY ── */
+.score-ring-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.score-ring { position: relative; width: 90px; height: 90px; }
+.score-ring svg { transform: rotate(-90deg); }
+.score-ring .score-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+.score-number { font-family: var(--font-serif); font-size: 22px; color: var(--navy); line-height: 1; }
+.score-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-top: 2px; }
+.score-ring-label { font-size: 11px; color: var(--text-muted); text-align: center; }
+
+/* ── COMPARISON PANEL ── */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.25rem; }
+.compare-panel { border-radius: 10px; overflow: hidden; border: 1px solid var(--border-tan); }
+.compare-header { padding: 10px 16px; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; display: flex; align-items: center; justify-content: space-between; }
+.compare-header.original { background: var(--terra-light); color: var(--rust); border-bottom: 1px solid rgba(196,103,58,0.15); }
+.compare-header.improved { background: var(--sage-light); color: var(--sage-dark); border-bottom: 1px solid rgba(92,143,106,0.15); }
+.compare-body { padding: 1rem; background: white; font-size: 13px; color: var(--navy); line-height: 1.65; min-height: 120px; white-space: pre-wrap; font-family: var(--font-sans); }
+.compare-score { font-family: var(--font-serif); font-size: 22px; }
+
+/* ── CRITERIA TABLE ── */
+.criteria-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 0.75rem; }
+.criteria-table th { text-align: left; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); padding: 6px 10px; border-bottom: 1px solid var(--border-tan); }
+.criteria-table td { padding: 8px 10px; border-bottom: 1px solid rgba(212,184,150,0.15); color: var(--navy); vertical-align: top; }
+.criteria-table tr:last-child td { border-bottom: none; }
+
+/* ── BADGE ── */
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 500; }
+.badge-sage { background: var(--sage-light); color: var(--sage-dark); }
+.badge-terra { background: var(--terra-light); color: var(--rust); }
+.badge-gold { background: var(--gold-light); color: #7D6000; }
+.badge-navy { background: rgba(30,45,74,0.08); color: var(--navy); }
+
+/* ── CHANGES LIST ── */
+.change-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(212,184,150,0.2); font-size: 12px; }
+.change-item:last-child { border-bottom: none; }
+.change-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.change-dot.auto { background: var(--sage); }
+.change-dot.placeholder { background: var(--gold); }
+.change-text { flex: 1; }
+.change-reason { color: var(--text-muted); font-size: 11px; margin-top: 2px; }
+
+/* ── LIFT BANNER ── */
+.lift-banner { background: var(--sage-light); border: 1px solid rgba(92,143,106,0.25); border-radius: 10px; padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 2rem; margin-bottom: 1.25rem; }
+.lift-stat { text-align: center; }
+.lift-number { font-family: var(--font-serif); font-size: 36px; color: var(--sage-dark); line-height: 1; }
+.lift-number.positive { color: var(--sage-dark); }
+.lift-number.negative { color: var(--terracotta); }
+.lift-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-top: 4px; }
+.lift-divider { width: 1px; height: 50px; background: rgba(92,143,106,0.2); }
+.lift-summary { flex: 1; font-size: 13px; color: var(--navy); line-height: 1.65; }
+
+/* ── TASK TYPE CARDS ── */
+.task-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; margin-bottom: 1.5rem; }
+.task-card { padding: 12px; border-radius: 10px; border: 2px solid var(--border-tan); cursor: pointer; transition: all 0.15s; text-align: center; background: white; }
+.task-card:hover { border-color: var(--sage-mid); background: var(--sage-light); }
+.task-card.selected { border-color: var(--sage); background: var(--sage-light); }
+.task-icon { font-size: 20px; margin-bottom: 6px; }
+.task-name { font-size: 11px; font-weight: 500; color: var(--navy); }
+.task-desc { font-size: 10px; color: var(--text-muted); margin-top: 3px; line-height: 1.4; }
+
+/* ── PLACEHOLDER CALLOUT ── */
+.placeholder-box { background: var(--gold-light); border: 1px solid rgba(201,168,76,0.3); border-radius: 8px; padding: 10px 14px; margin-top: 10px; }
+.placeholder-box .title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gold); font-weight: 500; margin-bottom: 6px; }
+.placeholder-item { font-size: 12px; color: var(--navy); margin-bottom: 4px; display: flex; gap: 8px; }
+.placeholder-tag { font-family: var(--font-mono); font-size: 11px; background: rgba(201,168,76,0.2); padding: 1px 6px; border-radius: 4px; color: #7D6000; flex-shrink: 0; }
+
+/* ── HISTORY ── */
+.history-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(212,184,150,0.2); cursor: pointer; transition: background 0.1s; }
+.history-item:hover { background: var(--sage-light); margin: 0 -1rem; padding: 10px 1rem; border-radius: 8px; }
+.history-item:last-child { border-bottom: none; }
+.history-prompt { font-size: 12px; color: var(--navy); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-meta { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+
+/* ── STATUS BAR ── */
+.status-bar { position: fixed; bottom: 0; right: 0; left: 256px; background: var(--sage-deep); padding: 6px 2.5rem; display: flex; align-items: center; gap: 16px; font-size: 11px; color: rgba(168,201,176,0.35); z-index: 100; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sage-mid); }
+.status-dot.idle { background: rgba(168,201,176,0.3); }
+.status-dot.running { background: var(--sage-mid); animation: pulse 1s infinite; }
+.status-dot.error { background: var(--terracotta); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+/* ── PROGRESS ── */
+.progress-track { height: 4px; background: rgba(92,143,106,0.15); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+.progress-fill { height: 100%; border-radius: 2px; background: var(--sage); transition: width 0.3s; }
+
+@media (max-width: 1000px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .main { padding: 1rem; }
+  .metric-grid { grid-template-columns: 1fr 1fr; }
+  .compare-grid { grid-template-columns: 1fr; }
+  .task-grid { grid-template-columns: repeat(3,1fr); }
+  .status-bar { left: 0; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-badge">C</div>
+      <div class="product-name">CRAFT</div>
+      <div class="product-full">Contextual Rewriting<br>and Fidelity Tester</div>
+      <div class="brand">by Metamorphic Curations LLC</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Analyze</div>
+      <button class="nav-item active" onclick="showPage('analyze',this)"><span class="icon">◎</span> Prompt Analyzer</button>
+      <button class="nav-item" onclick="showPage('results',this)"><span class="icon">◈</span> Results</button>
+      <button class="nav-item" onclick="showPage('history',this)"><span class="icon">◷</span> History</button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Learn</div>
+      <button class="nav-item" onclick="showPage('guide',this)"><span class="icon">▤</span> Prompt Guide</button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Data</div>
+      <button class="nav-item" onclick="exportHistory()"><span class="icon">↑</span> Export History</button>
+      <button class="nav-item" onclick="clearHistory()"><span class="icon">✕</span> Clear History</button>
+    </div>
+    <div class="sidebar-footer">
+      Crystal Tubbs<br>KSU MSAI &mdash; Big Data<br>Metamorphic Curations LLC<br><br>Make it a great day.
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- API KEY -->
+    <div class="api-banner">
+      <label>Anthropic API Key</label>
+      <input type="password" id="api-key" placeholder="sk-ant-..." oninput="checkKey()" />
+      <span id="key-status" style="color:rgba(168,201,176,0.4);font-size:11px">Not set</span>
+    </div>
+
+    <!-- ── ANALYZE PAGE ── -->
+    <div id="page-analyze" class="page active">
+      <div class="page-header">
+        <h2>Prompt Analyzer</h2>
+        <p>Paste any enterprise prompt. CRAFT diagnoses it, scores it, rewrites it, and shows you the output difference.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Your prompt</div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label>Prompt text</label>
+          <textarea id="input-prompt" rows="5" placeholder="Paste your prompt here. For example: hey can you look at this employee record and tell me if they qualify for FMLA"></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label>Additional context or document (optional)</label>
+          <textarea id="input-context" rows="3" placeholder="Paste any relevant document, data, or background context here..."></textarea>
+        </div>
+
+        <div class="form-grid-2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label>Task type override</label>
+            <select id="sel-task-type">
+              <option value="auto">Auto-detect (recommended)</option>
+              <option value="extraction">Data Extraction</option>
+              <option value="reasoning">Reasoning and Analysis</option>
+              <option value="generation">Content Generation</option>
+              <option value="ideation">Ideation and Brainstorming</option>
+              <option value="conversational">Conversational Guidance</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Model</label>
+            <select id="sel-model">
+              <option value="claude-opus-4-5">claude-opus-4-5</option>
+              <option value="claude-sonnet-4-20250514">claude-sonnet-4</option>
+              <option value="claude-haiku-4-5-20251001">claude-haiku-4-5</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="analyze-btn" onclick="runAnalysis()">Analyze and Improve Prompt</button>
+      </div>
+
+      <!-- PIPELINE STEPS -->
+      <div id="pipeline-section" style="display:none">
+        <div class="card">
+          <div class="card-title">Analysis pipeline</div>
+          <div class="pipeline" id="pipeline-steps">
+            <div class="pipeline-step" id="step-1"><div class="step-num" id="sn-1">1</div><div class="step-label">Classify task type</div><div class="step-status" id="ss-1">Waiting</div></div>
+            <div class="pipeline-step" id="step-2"><div class="step-num" id="sn-2">2</div><div class="step-label">Score original prompt</div><div class="step-status" id="ss-2">Waiting</div></div>
+            <div class="pipeline-step" id="step-3"><div class="step-num" id="sn-3">3</div><div class="step-label">Run original prompt through Claude</div><div class="step-status" id="ss-3">Waiting</div></div>
+            <div class="pipeline-step" id="step-4"><div class="step-num" id="sn-4">4</div><div class="step-label">Evaluate original output quality</div><div class="step-status" id="ss-4">Waiting</div></div>
+            <div class="pipeline-step" id="step-5"><div class="step-num" id="sn-5">5</div><div class="step-label">Rewrite and improve prompt</div><div class="step-status" id="ss-5">Waiting</div></div>
+            <div class="pipeline-step" id="step-6"><div class="step-num" id="sn-6">6</div><div class="step-label">Run improved prompt and evaluate</div><div class="step-status" id="ss-6">Waiting</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULTS SECTION (populated after analysis) -->
+      <div id="results-section" style="display:none">
+
+        <!-- Classification -->
+        <div class="card sage-tinted" id="r-classification">
+          <div class="card-title">Task classification</div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div>
+              <div style="font-family:var(--font-serif);font-size:22px;color:var(--sage-dark)" id="r-task-label">—</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:3px" id="r-task-reasoning">—</div>
+            </div>
+            <div style="margin-left:auto;text-align:right">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted)">Confidence</div>
+              <div style="font-family:var(--font-serif);font-size:28px;color:var(--sage-dark)" id="r-confidence">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Score comparison -->
+        <div class="lift-banner" id="r-lift-banner" style="display:none">
+          <div class="lift-stat">
+            <div class="lift-number" id="r-prompt-lift">—</div>
+            <div class="lift-label">Prompt score lift</div>
+          </div>
+          <div class="lift-divider"></div>
+          <div class="lift-stat">
+            <div class="lift-number" id="r-output-lift">—</div>
+            <div class="lift-label">Output quality lift</div>
+          </div>
+          <div class="lift-divider"></div>
+          <div class="lift-summary" id="r-lift-summary">—</div>
+        </div>
+
+        <!-- Prompt comparison -->
+        <div class="card">
+          <div class="card-title">Prompt comparison</div>
+          <div class="compare-grid">
+            <div class="compare-panel">
+              <div class="compare-header original">
+                <span>Original prompt</span>
+                <span class="compare-score" id="r-orig-prompt-score">—</span>
+              </div>
+              <div class="compare-body" id="r-orig-prompt">—</div>
+            </div>
+            <div class="compare-panel">
+              <div class="compare-header improved">
+                <span>Improved prompt</span>
+                <span class="compare-score" id="r-new-prompt-score">—</span>
+              </div>
+              <div class="compare-body" id="r-new-prompt">—</div>
+            </div>
+          </div>
+
+          <div id="r-changes-section" style="display:none">
+            <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:10px">Changes made</div>
+            <div id="r-changes-list"></div>
+          </div>
+
+          <div id="r-placeholders-section" style="display:none">
+            <div class="placeholder-box">
+              <div class="title">Placeholders requiring your input</div>
+              <div id="r-placeholders-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output comparison -->
+        <div class="card">
+          <div class="card-title">Output comparison</div>
+          <div class="compare-grid">
+            <div class="compare-panel">
+              <div class="compare-header original">
+                <span>Original output</span>
+                <span class="compare-score" id="r-orig-output-score">—</span>
+              </div>
+              <div class="compare-body" id="r-orig-output" style="max-height:300px;overflow-y:auto">—</div>
+            </div>
+            <div class="compare-panel">
+              <div class="compare-header improved">
+                <span>Improved output</span>
+                <span class="compare-score" id="r-new-output-score">—</span>
+              </div>
+              <div class="compare-body" id="r-new-output" style="max-height:300px;overflow-y:auto">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed scoring -->
+        <div class="card">
+          <div class="card-title">Detailed prompt scoring</div>
+          <div class="compare-grid">
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Original prompt criteria</div>
+              <table class="criteria-table" id="r-orig-criteria"></table>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Improved prompt criteria</div>
+              <table class="criteria-table" id="r-new-criteria"></table>
+            </div>
+          </div>
+          <div id="r-ceiling-note" style="font-size:12px;color:var(--text-muted);margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border-tan)"></div>
+          <div id="r-user-action" style="display:none;margin-top:10px;padding:10px 14px;background:var(--gold-light);border-radius:8px;font-size:12px;color:var(--navy)"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── RESULTS PAGE ── -->
+    <div id="page-results" class="page">
+      <div class="page-header">
+        <h2>Session Results</h2>
+        <p>Aggregate metrics across all prompts analyzed this session.</p>
+      </div>
+      <div class="metric-grid">
+        <div class="metric-card"><div class="metric-label">Prompts analyzed</div><div class="metric-value" id="stat-count">0</div><div class="metric-sub">this session</div></div>
+        <div class="metric-card terra"><div class="metric-label">Avg original score</div><div class="metric-value" id="stat-orig">—</div><div class="metric-sub">prompt quality before</div></div>
+        <div class="metric-card"><div class="metric-label">Avg improved score</div><div class="metric-value" id="stat-new">—</div><div class="metric-sub">prompt quality after</div></div>
+        <div class="metric-card gold"><div class="metric-label">Avg output lift</div><div class="metric-value" id="stat-lift">—</div><div class="metric-sub">output quality improvement</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Results by task type</div>
+        <div id="task-type-breakdown" style="font-size:13px;color:var(--text-muted)">No results yet. Analyze a prompt to see results.</div>
+      </div>
+    </div>
+
+    <!-- ── HISTORY PAGE ── -->
+    <div id="page-history" class="page">
+      <div class="page-header">
+        <h2>Analysis History</h2>
+        <p>All prompts analyzed in this browser. Click any to reload.</p>
+      </div>
+      <div class="card">
+        <div id="history-list" style="font-size:13px;color:var(--text-muted)">No history yet.</div>
+      </div>
+    </div>
+
+    <!-- ── GUIDE PAGE ── -->
+    <div id="page-guide" class="page">
+      <div class="page-header">
+        <h2>Prompt Guide</h2>
+        <p>Task-appropriate prompting principles grounded in CRAFT research.</p>
+      </div>
+
+      <div class="task-grid" id="guide-task-nav">
+        <div class="task-card selected" onclick="showGuide('extraction',this)"><div class="task-icon">📋</div><div class="task-name">Extraction</div></div>
+        <div class="task-card" onclick="showGuide('reasoning',this)"><div class="task-icon">🔍</div><div class="task-name">Reasoning</div></div>
+        <div class="task-card" onclick="showGuide('generation',this)"><div class="task-icon">✍️</div><div class="task-name">Generation</div></div>
+        <div class="task-card" onclick="showGuide('ideation',this)"><div class="task-icon">💡</div><div class="task-name">Ideation</div></div>
+        <div class="task-card" onclick="showGuide('conversational',this)"><div class="task-icon">💬</div><div class="task-name">Conversational</div></div>
+      </div>
+
+      <div id="guide-content"></div>
+    </div>
+
+  </main>
+</div>
+
+<div class="status-bar">
+  <div class="status-dot idle" id="status-dot"></div>
+  <span id="status-text">Ready</span>
+  <span style="margin-left:auto" id="status-right">0 prompts analyzed</span>
+</div>
+
+<script>
+const BACKEND = 'https://craft-prompt-coach.onrender.com';
+
+let history = JSON.parse(localStorage.getItem('craft_history')||'[]');
+let running = false;
+let stopRequested = false;
+
+const GUIDE_CONTENT = {
+  extraction: {
+    title: 'Data Extraction Prompts',
+    icon: '📋',
+    principle: 'For extraction tasks, structure is everything. The model needs to know exactly what fields to extract, what type each field should be, and what to do when a value is missing. Ambiguity in extraction prompts directly causes schema failures.',
+    checklist: [
+      'List every required output field by name',
+      'Specify the data type for each field (string, number, boolean, array)',
+      'Instruct the model what to return for missing or ambiguous values (null, "unknown", or a default)',
+      'Specify output format explicitly (JSON, markdown table, CSV)',
+      'Provide an example of a correct output if the schema is complex'
+    ],
+    before: 'Extract the benefits info from this document.',
+    after: 'Extract the following fields from the VA benefits document below and return as JSON. Required fields: benefit_name (string), eligibility_criteria (array of strings), max_benefit_amount (number or null if not stated), application_form (string or null), transferable_to_dependents (boolean). If a field is not mentioned in the document, return null. Document: [DOCUMENT]'
+  },
+  reasoning: {
+    title: 'Reasoning and Analysis Prompts',
+    icon: '🔍',
+    principle: 'Reasoning prompts fail when they lack situational specificity. The model cannot apply rules correctly without knowing the specific facts of the situation, the applicable constraints, and what kind of answer you actually need. Over-generalized reasoning prompts produce over-generalized answers.',
+    checklist: [
+      'State your role and relevant experience level',
+      'Provide the specific facts of the situation, not just a general question',
+      'Name the applicable rules, policies, or laws',
+      'State any constraints (deadline, budget, jurisdiction, company policy)',
+      'Specify what a useful answer looks like (recommendation, options, explanation, step-by-step)'
+    ],
+    before: 'How does FMLA work for this employee?',
+    after: 'I am an HR manager at a 200-person company in Georgia. An employee with 14 months tenure is requesting 8 weeks of leave starting in 3 weeks for a planned surgery. Our company policy follows federal FMLA minimums. The employee has worked at least 1,250 hours this year. Please advise whether this employee qualifies for FMLA, what documentation I need to request, and what my notification obligations are under federal law. Provide a step-by-step action plan.'
+  },
+  generation: {
+    title: 'Content Generation Prompts',
+    icon: '✍️',
+    principle: 'Generation prompts fail when they leave tone, audience, and constraints undefined. The model will fill those gaps with assumptions that may not match what you need. Specifying who will read this, what tone is appropriate, and what constraints apply dramatically narrows the solution space toward useful output.',
+    checklist: [
+      'Name the target audience and their relationship to you',
+      'Specify the tone (formal, empathetic, assertive, conversational)',
+      'State length or format requirements',
+      'Name any constraints (things to avoid, required elements, brand voice)',
+      'Provide an example or reference if you have one'
+    ],
+    before: 'Write an email to a client about a project delay.',
+    after: 'Write a professional but empathetic email to a client (a mid-level marketing manager at a retail company) informing them that our software integration project will be delayed by 3 weeks due to an unexpected dependency issue on our end. The tone should be accountable and solution-focused, not defensive. Keep it under 200 words. Include: acknowledgment of the delay, brief explanation without over-explaining, revised timeline, and one concrete action we are taking to prevent further delays. Do not use jargon.'
+  },
+  ideation: {
+    title: 'Ideation and Brainstorming Prompts',
+    icon: '💡',
+    principle: 'Ideation prompts are the most commonly over-structured by enterprise users. Specifying too many constraints too early narrows the solution space before creative thinking can happen. The goal is to provide enough context for feasibility while leaving the approach genuinely open. Asking for a ranked list of three options is not brainstorming.',
+    checklist: [
+      'State the problem you are solving, not the solution you expect',
+      'Provide the constraints that determine feasibility (budget, timeline, team size, technology)',
+      'State how ideas will be evaluated (by what criteria)',
+      'Ask for quantity and diversity, not a ranked shortlist',
+      'Explicitly say what approaches are already ruled out to avoid redundant suggestions'
+    ],
+    before: 'Give me ideas for a new app feature.',
+    after: 'We are a 4-person engineering team building a B2B SaaS project management tool for construction companies. We have 6 weeks of sprint capacity and a $0 third-party API budget for this cycle. We need feature ideas that would improve daily active usage among field supervisors who are not tech-savvy. We have already ruled out AI chat features and mobile app redesign. Please generate 8 genuinely different feature ideas across different categories. For each idea, note what problem it solves for field supervisors and what the rough implementation complexity would be.'
+  },
+  conversational: {
+    title: 'Conversational Guidance Prompts',
+    icon: '💬',
+    principle: 'Conversational prompts are the most common type in enterprise settings and the most underspecified. The model has no way to calibrate depth, tone, or accuracy without knowing who is asking and what they already know. Adding four pieces of context, your role, the specific situation, applicable constraints, and what a useful answer looks like, transforms a vague question into a targeted one.',
+    checklist: [
+      'State your role and experience level with this topic',
+      'Describe the specific situation, not just the general topic',
+      'Mention any constraints or context the answer must account for',
+      'Say how detailed or simple you need the answer to be',
+      'If this is part of an ongoing decision, share what you have already considered'
+    ],
+    before: 'What should I do about an employee who keeps missing deadlines?',
+    after: 'I am a first-time manager with a team of 6 software engineers. One engineer has missed 3 consecutive sprint deadlines over the past 6 weeks. I have had one informal conversation with them where they said they were overwhelmed, but the pattern has continued. Our company has a formal PIP process but I have never initiated one. I want to address this fairly and in a way that preserves the relationship if possible. What are my options, in order from least to most formal, and what should I say in my next conversation with them? Keep the answer practical and actionable.'
+  }
+};
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(name==='history') renderHistory();
+  if(name==='results') renderResults();
+  if(name==='guide') renderGuide('extraction');
+}
+
+// ── API key ───────────────────────────────────────────────────────────────────
+function checkKey() {
+  const k = document.getElementById('api-key').value.trim();
+  const el = document.getElementById('key-status');
+  if(k.startsWith('sk-ant-')&&k.length>20) { el.textContent='Key set'; el.className='key-ok'; }
+  else if(k.length>0) { el.textContent='Invalid format'; el.className='key-bad'; }
+  else { el.textContent='Not set'; el.style.color='rgba(168,201,176,0.4)'; }
+}
+
+// ── Status ────────────────────────────────────────────────────────────────────
+function setStatus(state, text) {
+  document.getElementById('status-dot').className = 'status-dot '+state;
+  document.getElementById('status-text').textContent = text;
+  document.getElementById('status-right').textContent = `${history.length} prompts analyzed`;
+}
+
+// ── Step management ───────────────────────────────────────────────────────────
+function setStep(n, state, statusText) {
+  const step = document.getElementById('step-'+n);
+  const sn   = document.getElementById('sn-'+n);
+  const ss   = document.getElementById('ss-'+n);
+  step.className = 'pipeline-step '+state;
+  sn.className   = 'step-num '+state;
+  ss.className   = 'step-status '+state;
+  ss.textContent = statusText;
+}
+
+function resetPipeline() {
+  for(let i=1;i<=6;i++) setStep(i,'','Waiting');
+}
+
+// ── Score ring SVG ────────────────────────────────────────────────────────────
+function scoreRing(score, color) {
+  const r = 36, circ = 2*Math.PI*r;
+  const fill = (score/100)*circ;
+  return `<svg width="90" height="90" viewBox="0 0 90 90">
+    <circle cx="45" cy="45" r="${r}" fill="none" stroke="rgba(92,143,106,0.12)" stroke-width="8"/>
+    <circle cx="45" cy="45" r="${r}" fill="none" stroke="${color}" stroke-width="8"
+      stroke-dasharray="${fill} ${circ}" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function scoreColor(score) {
+  if(score>=75) return 'var(--sage-dark)';
+  if(score>=50) return 'var(--gold)';
+  return 'var(--terracotta)';
+}
+
+// ── Criteria table ─────────────────────────────────────────────────────────────
+function renderCriteriaTable(auditData, tableId) {
+  const table = document.getElementById(tableId);
+  if(!table||!auditData) return;
+  const scores = {...(auditData.criteria_scores||{}), ...(auditData.bonus_scores||{})};
+  table.innerHTML = `<thead><tr><th>Criterion</th><th>Score</th><th>Feedback</th></tr></thead>
+  <tbody>${Object.entries(scores).map(([k,v])=>`
+    <tr>
+      <td style="font-weight:500;text-transform:capitalize">${k.replace(/_/g,' ')}</td>
+      <td style="color:${scoreColor(v.score||0)};font-weight:500;white-space:nowrap">${v.score||0}/100</td>
+      <td style="color:var(--text-muted)">${v.feedback||''}</td>
+    </tr>`).join('')}</tbody>`;
+}
+
+// ── Main analysis ─────────────────────────────────────────────────────────────
+async function runAnalysis() {
+  if(running) return;
+  const apiKey = document.getElementById('api-key').value.trim();
+  if(!apiKey.startsWith('sk-ant-')) { alert('Enter a valid Anthropic API key above.'); return; }
+  const prompt  = document.getElementById('input-prompt').value.trim();
+  if(!prompt) { alert('Enter a prompt to analyze.'); return; }
+  const context   = document.getElementById('input-context').value.trim();
+  const taskType  = document.getElementById('sel-task-type').value;
+  const model     = document.getElementById('sel-model').value;
+
+  running = true;
+  document.getElementById('analyze-btn').disabled = true;
+  document.getElementById('analyze-btn').textContent = 'Analyzing...';
+  document.getElementById('pipeline-section').style.display = 'block';
+  document.getElementById('results-section').style.display = 'none';
+  resetPipeline();
+  setStatus('running','Analysis running...');
+
+  // State collected from stream
+  let classification={}, originalAudit={}, originalOutput='', originalEval={};
+  let rewriteData={}, improvedAudit={}, improvedOutput='', improvedEval={};
+  let complete={};
+
+  try {
+    const resp = await fetch(`${BACKEND}/api/analyze`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({api_key:apiKey, prompt, context, task_type:taskType, model})
+    });
+
+    if(!resp.ok) {
+      const err = await resp.json().catch(()=>({detail:'Unknown error'}));
+      throw new Error(err.detail||`HTTP ${resp.status}`);
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while(true) {
+      const {done,value} = await reader.read();
+      if(done) break;
+      buffer += decoder.decode(value,{stream:true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for(const line of lines) {
+        if(!line.startsWith('data:')) continue;
+        const raw = line.slice(5).trim();
+        if(!raw) continue;
+        let msg;
+        try { msg=JSON.parse(raw); } catch { continue; }
+
+        if(msg.event==='step') {
+          setStep(msg.step,'active','Running...');
+        } else if(msg.event==='error') {
+          setStep(msg.step||1,'error','Error');
+          alert('Error: '+msg.message);
+          break;
+        } else if(msg.event==='classification') {
+          classification = msg;
+          setStep(1,'done','Done');
+          document.getElementById('r-task-label').textContent = msg.task_label||msg.task_type;
+          document.getElementById('r-task-reasoning').textContent = msg.reasoning||'';
+          document.getElementById('r-confidence').textContent = (msg.confidence||0)+'%';
+        } else if(msg.event==='original_audit') {
+          originalAudit = msg;
+          setStep(2,'done','Done');
+        } else if(msg.event==='original_output') {
+          originalOutput = msg.output||'';
+          setStep(3,'done',msg.latency_ms+'ms');
+        } else if(msg.event==='original_eval') {
+          originalEval = msg;
+          setStep(4,'done','Done');
+        } else if(msg.event==='rewrite') {
+          rewriteData  = msg;
+          improvedAudit = msg.improved_audit||{};
+          setStep(5,'done','Done');
+        } else if(msg.event==='improved_output') {
+          improvedOutput = msg.output||'';
+          improvedEval   = msg.improved_eval||{};
+          setStep(6,'done',msg.latency_ms+'ms');
+        } else if(msg.event==='complete') {
+          complete = msg;
+        }
+      }
+    }
+  } catch(e) {
+    alert('Connection error: '+e.message+'\n\nMake sure the backend is running at '+BACKEND);
+    setStatus('error','Error');
+    running=false;
+    document.getElementById('analyze-btn').disabled=false;
+    document.getElementById('analyze-btn').textContent='Analyze and Improve Prompt';
+    return;
+  }
+
+  // Populate results
+  document.getElementById('results-section').style.display='block';
+
+  // Lift banner
+  if(complete.prompt_lift!==undefined) {
+    document.getElementById('r-lift-banner').style.display='flex';
+    const pl = complete.prompt_lift||0;
+    const ol = complete.output_lift||0;
+    document.getElementById('r-prompt-lift').textContent = (pl>=0?'+':'')+pl+'pp';
+    document.getElementById('r-prompt-lift').className = 'lift-number '+(pl>=0?'positive':'negative');
+    document.getElementById('r-output-lift').textContent = (ol>=0?'+':'')+ol+'pp';
+    document.getElementById('r-output-lift').className = 'lift-number '+(ol>=0?'positive':'negative');
+    document.getElementById('r-lift-summary').textContent =
+      `Prompt quality improved from ${complete.prompt_score_before||0} to ${complete.prompt_score_after||0} out of 100. Output quality improved from ${complete.output_score_before||0} to ${complete.output_score_after||0} out of 100. Ceiling score with available information: ${complete.ceiling_score||0}/100.`;
+  }
+
+  // Prompts
+  document.getElementById('r-orig-prompt').textContent = prompt+(context?'\n\n[Context provided]':'');
+  document.getElementById('r-orig-prompt-score').textContent = (originalAudit.total_score||0)+'/100';
+  document.getElementById('r-new-prompt').textContent = rewriteData.rewritten_prompt||'';
+  document.getElementById('r-new-prompt-score').textContent = (improvedAudit.total_score||0)+'/100';
+
+  // Outputs
+  document.getElementById('r-orig-output').textContent = originalOutput;
+  document.getElementById('r-orig-output-score').textContent = (originalEval.total_score||0)+'/100';
+  document.getElementById('r-new-output').textContent = improvedOutput;
+  document.getElementById('r-new-output-score').textContent = (improvedEval.total_score||0)+'/100';
+
+  // Changes
+  const changes = rewriteData.changes_made||[];
+  if(changes.length) {
+    document.getElementById('r-changes-section').style.display='block';
+    document.getElementById('r-changes-list').innerHTML = changes.map(c=>`
+      <div class="change-item">
+        <div class="change-dot auto"></div>
+        <div class="change-text">
+          <div>${c.change||''}</div>
+          <div class="change-reason">${c.reason||''}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  // Placeholders
+  const placeholders = rewriteData.placeholders_added||[];
+  if(placeholders.length) {
+    document.getElementById('r-placeholders-section').style.display='block';
+    document.getElementById('r-placeholders-list').innerHTML = placeholders.map(p=>`
+      <div class="placeholder-item">
+        <span class="placeholder-tag">${p.placeholder||''}</span>
+        <span>${p.what_to_fill||''}</span>
+      </div>`).join('');
+  }
+
+  // Criteria tables
+  renderCriteriaTable(originalAudit,'r-orig-criteria');
+  renderCriteriaTable(improvedAudit,'r-new-criteria');
+
+  // Ceiling note
+  if(originalAudit.ceiling_note) {
+    document.getElementById('r-ceiling-note').textContent = originalAudit.ceiling_note;
+  }
+
+  // User action
+  if(rewriteData.user_action_required) {
+    const ua = document.getElementById('r-user-action');
+    ua.style.display='block';
+    ua.innerHTML='<strong>To reach ceiling score:</strong> '+rewriteData.user_action_required;
+  }
+
+  // Save to history
+  const historyEntry = {
+    id: Date.now(),
+    timestamp: new Date().toISOString(),
+    prompt: prompt.slice(0,100)+'...',
+    task_type: classification.task_type||'unknown',
+    task_label: classification.task_label||'Unknown',
+    prompt_score_before: complete.prompt_score_before||0,
+    prompt_score_after:  complete.prompt_score_after||0,
+    output_score_before: complete.output_score_before||0,
+    output_score_after:  complete.output_score_after||0,
+    prompt_lift:  complete.prompt_lift||0,
+    output_lift:  complete.output_lift||0,
+    ceiling_score: complete.ceiling_score||0
+  };
+  history.unshift(historyEntry);
+  if(history.length>50) history.pop();
+  localStorage.setItem('craft_history', JSON.stringify(history));
+
+  setStatus('idle',`Analysis complete`);
+  document.getElementById('status-right').textContent = `${history.length} prompts analyzed`;
+  running=false;
+  document.getElementById('analyze-btn').disabled=false;
+  document.getElementById('analyze-btn').textContent='Analyze and Improve Prompt';
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if(!history.length) { el.innerHTML='<p style="color:var(--text-muted)">No history yet. Analyze a prompt to see it here.</p>'; return; }
+  el.innerHTML = history.map(h=>`
+    <div class="history-item">
+      <span class="badge badge-sage">${h.task_label||h.task_type}</span>
+      <span class="history-prompt">${h.prompt}</span>
+      <span class="history-meta">
+        Prompt: ${h.prompt_score_before}→${h.prompt_score_after} &nbsp;
+        Output: ${h.output_score_before}→${h.output_score_after} &nbsp;
+        ${new Date(h.timestamp).toLocaleTimeString()}
+      </span>
+    </div>`).join('');
+}
+
+// ── Results ───────────────────────────────────────────────────────────────────
+function renderResults() {
+  document.getElementById('stat-count').textContent = history.length;
+  if(!history.length) return;
+  const avgOrig  = Math.round(history.reduce((a,h)=>a+h.prompt_score_before,0)/history.length);
+  const avgNew   = Math.round(history.reduce((a,h)=>a+h.prompt_score_after,0)/history.length);
+  const avgLift  = Math.round(history.reduce((a,h)=>a+h.output_lift,0)/history.length);
+  document.getElementById('stat-orig').textContent = avgOrig;
+  document.getElementById('stat-new').textContent  = avgNew;
+  document.getElementById('stat-lift').textContent = (avgLift>=0?'+':'')+avgLift+'pp';
+
+  const byType = {};
+  history.forEach(h=>{
+    if(!byType[h.task_type]) byType[h.task_type]={count:0,promptLift:0,outputLift:0,label:h.task_label};
+    byType[h.task_type].count++;
+    byType[h.task_type].promptLift+=h.prompt_lift;
+    byType[h.task_type].outputLift+=h.output_lift;
+  });
+  document.getElementById('task-type-breakdown').innerHTML = Object.entries(byType).map(([type,d])=>`
+    <div style="display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--border-tan)">
+      <span class="badge badge-sage">${d.label}</span>
+      <span style="font-size:13px;color:var(--text-muted)">${d.count} prompt${d.count!==1?'s':''}</span>
+      <span style="margin-left:auto;font-size:12px;color:var(--text-muted)">
+        Avg prompt lift: <strong style="color:var(--sage-dark)">+${Math.round(d.promptLift/d.count)}pp</strong> &nbsp;
+        Avg output lift: <strong style="color:var(--sage-dark)">+${Math.round(d.outputLift/d.count)}pp</strong>
+      </span>
+    </div>`).join('');
+}
+
+// ── Guide ─────────────────────────────────────────────────────────────────────
+function showGuide(type, card) {
+  document.querySelectorAll('.task-card').forEach(c=>c.classList.remove('selected'));
+  if(card) card.classList.add('selected');
+  renderGuide(type);
+}
+
+function renderGuide(type) {
+  const g = GUIDE_CONTENT[type];
+  if(!g) return;
+  document.getElementById('guide-content').innerHTML = `
+    <div class="card">
+      <div class="card-title">${g.icon} ${g.title}</div>
+      <p style="font-size:13px;color:var(--navy);line-height:1.7;margin-bottom:1.5rem">${g.principle}</p>
+
+      <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:10px">Completeness checklist</div>
+      <div style="margin-bottom:1.5rem">${g.checklist.map(item=>`
+        <div style="display:flex;gap:10px;padding:6px 0;font-size:13px;color:var(--navy);border-bottom:1px solid rgba(212,184,150,0.15)">
+          <span style="color:var(--sage);flex-shrink:0">✓</span>${item}
+        </div>`).join('')}</div>
+
+      <div class="compare-grid">
+        <div class="compare-panel">
+          <div class="compare-header original"><span>Before</span><span style="font-size:11px">Under-specified</span></div>
+          <div class="compare-body" style="font-style:italic;color:var(--text-muted)">${g.before}</div>
+        </div>
+        <div class="compare-panel">
+          <div class="compare-header improved"><span>After</span><span style="font-size:11px">Task-appropriate</span></div>
+          <div class="compare-body">${g.after}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Export / clear ────────────────────────────────────────────────────────────
+function exportHistory() {
+  if(!history.length) { alert('No history to export.'); return; }
+  const keys = ['timestamp','task_type','task_label','prompt','prompt_score_before','prompt_score_after','prompt_lift','output_score_before','output_score_after','output_lift','ceiling_score'];
+  const csv = [keys.join(','), ...history.map(h=>keys.map(k=>JSON.stringify(h[k]??'')).join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = 'craft_history.csv';
+  a.click();
+}
+
+function clearHistory() {
+  if(!confirm('Clear all analysis history?')) return;
+  history=[];
+  localStorage.removeItem('craft_history');
+  setStatus('idle','Ready');
+  document.getElementById('status-right').textContent='0 prompts analyzed';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+renderGuide('extraction');
+setStatus('idle','Ready');
+document.getElementById('status-right').textContent = `${history.length} prompts analyzed`;
+</script>
+</body>
+</html>
