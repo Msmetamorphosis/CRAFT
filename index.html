@@ -331,90 +331,149 @@ textarea { resize: vertical; min-height: 100px; font-family: var(--font-sans); f
           </div>
         </div>
 
-        <!-- Score comparison -->
-        <div class="lift-banner" id="r-lift-banner" style="display:none">
-          <div class="lift-stat">
-            <div class="lift-number" id="r-prompt-lift">—</div>
-            <div class="lift-label">Prompt score lift</div>
+        <!-- Score summary banner -->
+        <div id="r-lift-banner" style="display:none;margin-bottom:1.25rem">
+          <div class="card" style="background:linear-gradient(135deg,#EEF3ED,#FAF7F2);border-color:rgba(114,153,133,0.3)">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;align-items:center">
+              <div style="text-align:center">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:6px">Prompt score</div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+                  <div style="text-align:center">
+                    <div style="font-family:var(--font-serif);font-size:28px;color:var(--terracotta)" id="r-score-before">—</div>
+                    <div style="font-size:10px;color:var(--text-muted)">Before</div>
+                  </div>
+                  <div style="font-size:20px;color:var(--text-muted)">→</div>
+                  <div style="text-align:center">
+                    <div style="font-family:var(--font-serif);font-size:28px;color:#729985" id="r-score-after">—</div>
+                    <div style="font-size:10px;color:var(--text-muted)">After</div>
+                  </div>
+                </div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:6px">Prompt lift</div>
+                <div style="font-family:var(--font-serif);font-size:36px" id="r-prompt-lift">—</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:6px">Output lift</div>
+                <div style="font-family:var(--font-serif);font-size:36px" id="r-output-lift">—</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:6px">Ceiling score</div>
+                <div style="font-family:var(--font-serif);font-size:36px;color:var(--gold)" id="r-ceiling">—</div>
+                <div style="font-size:10px;color:var(--text-muted)">max with available info</div>
+              </div>
+            </div>
           </div>
-          <div class="lift-divider"></div>
-          <div class="lift-stat">
-            <div class="lift-number" id="r-output-lift">—</div>
-            <div class="lift-label">Output quality lift</div>
-          </div>
-          <div class="lift-divider"></div>
-          <div class="lift-summary" id="r-lift-summary">—</div>
         </div>
 
-        <!-- Prompt comparison -->
-        <div class="card">
+        <!-- Plain language summary -->
+        <div class="card sage-tinted" id="r-classification" style="margin-bottom:1.25rem">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div style="flex:1">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--sage-dark);margin-bottom:4px">Task detected</div>
+              <div style="font-family:var(--font-serif);font-size:20px;color:var(--sage-dark)" id="r-task-label">—</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-top:6px" id="r-task-reasoning">—</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--sage-dark);margin-bottom:4px">Confidence</div>
+              <div style="font-family:var(--font-serif);font-size:28px;color:var(--sage-dark)" id="r-confidence">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- What changed explanation -->
+        <div class="card" id="r-explanation-card" style="display:none;margin-bottom:1.25rem">
+          <div class="card-title">What CRAFT improved</div>
+          <div id="r-changes-list" style="margin-bottom:1rem"></div>
+          <div id="r-placeholders-section" style="display:none">
+            <div class="placeholder-box">
+              <div class="title">These placeholders need YOUR input to reach the ceiling score</div>
+              <div id="r-placeholders-list"></div>
+            </div>
+          </div>
+          <div id="r-ceiling-note" style="font-size:12px;color:var(--text-muted);margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border-tan);font-style:italic"></div>
+          <div id="r-user-action" style="display:none;margin-top:10px;padding:10px 14px;background:var(--gold-light);border-radius:8px;font-size:13px;color:var(--navy)"></div>
+        </div>
+
+        <!-- Prompt side by side -->
+        <div class="card" style="margin-bottom:1.25rem">
           <div class="card-title">Prompt comparison</div>
           <div class="compare-grid">
             <div class="compare-panel">
               <div class="compare-header original">
-                <span>Original prompt</span>
-                <span class="compare-score" id="r-orig-prompt-score">—</span>
+                <span>Your original prompt</span>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="font-size:10px;opacity:0.8">Score:</div>
+                  <span class="compare-score" id="r-orig-prompt-score">—</span>
+                </div>
               </div>
-              <div class="compare-body" id="r-orig-prompt">—</div>
+              <div class="compare-body" id="r-orig-prompt" style="color:var(--rust);font-style:italic">—</div>
+              <div style="padding:8px 16px;background:#FBE9E7;border-top:1px solid rgba(196,103,58,0.15)">
+                <div id="r-orig-summary" style="font-size:12px;color:var(--rust)"></div>
+              </div>
             </div>
             <div class="compare-panel">
               <div class="compare-header improved">
-                <span>Improved prompt</span>
-                <span class="compare-score" id="r-new-prompt-score">—</span>
+                <span>CRAFT improved prompt</span>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="font-size:10px;opacity:0.8">Score:</div>
+                  <span class="compare-score" id="r-new-prompt-score">—</span>
+                </div>
               </div>
               <div class="compare-body" id="r-new-prompt">—</div>
-            </div>
-          </div>
-
-          <div id="r-changes-section" style="display:none">
-            <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:10px">Changes made</div>
-            <div id="r-changes-list"></div>
-          </div>
-
-          <div id="r-placeholders-section" style="display:none">
-            <div class="placeholder-box">
-              <div class="title">Placeholders requiring your input</div>
-              <div id="r-placeholders-list"></div>
+              <div style="padding:8px 16px;background:var(--sage-light);border-top:1px solid rgba(114,153,133,0.2)">
+                <div id="r-new-summary" style="font-size:12px;color:var(--sage-dark)"></div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Output comparison -->
-        <div class="card">
-          <div class="card-title">Output comparison</div>
+        <!-- Output side by side -->
+        <div class="card" style="margin-bottom:1.25rem">
+          <div class="card-title">Output comparison — what Claude actually produced</div>
           <div class="compare-grid">
             <div class="compare-panel">
               <div class="compare-header original">
-                <span>Original output</span>
-                <span class="compare-score" id="r-orig-output-score">—</span>
+                <span>Output from original prompt</span>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="font-size:10px;opacity:0.8">Quality:</div>
+                  <span class="compare-score" id="r-orig-output-score">—</span>
+                </div>
               </div>
-              <div class="compare-body" id="r-orig-output" style="max-height:300px;overflow-y:auto">—</div>
+              <div class="compare-body" id="r-orig-output" style="max-height:300px;overflow-y:auto;font-size:12px">—</div>
+              <div style="padding:8px 16px;background:#FBE9E7;border-top:1px solid rgba(196,103,58,0.15)">
+                <div id="r-orig-output-fail" style="font-size:12px;color:var(--rust)"></div>
+              </div>
             </div>
             <div class="compare-panel">
               <div class="compare-header improved">
-                <span>Improved output</span>
-                <span class="compare-score" id="r-new-output-score">—</span>
+                <span>Output from improved prompt</span>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="font-size:10px;opacity:0.8">Quality:</div>
+                  <span class="compare-score" id="r-new-output-score">—</span>
+                </div>
               </div>
-              <div class="compare-body" id="r-new-output" style="max-height:300px;overflow-y:auto">—</div>
+              <div class="compare-body" id="r-new-output" style="max-height:300px;overflow-y:auto;font-size:12px">—</div>
+              <div style="padding:8px 16px;background:var(--sage-light);border-top:1px solid rgba(114,153,133,0.2)">
+                <div id="r-new-output-win" style="font-size:12px;color:var(--sage-dark)"></div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Detailed scoring -->
-        <div class="card">
-          <div class="card-title">Detailed prompt scoring</div>
+        <!-- Score breakdown -->
+        <div class="card" style="margin-bottom:1.25rem">
+          <div class="card-title">Score breakdown by criterion</div>
           <div class="compare-grid">
             <div>
-              <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Original prompt criteria</div>
-              <table class="criteria-table" id="r-orig-criteria"></table>
+              <div style="font-size:12px;font-weight:500;color:var(--rust);margin-bottom:10px">Original prompt</div>
+              <div id="r-orig-criteria-bars"></div>
             </div>
             <div>
-              <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Improved prompt criteria</div>
-              <table class="criteria-table" id="r-new-criteria"></table>
+              <div style="font-size:12px;font-weight:500;color:var(--sage-dark);margin-bottom:10px">Improved prompt</div>
+              <div id="r-new-criteria-bars"></div>
             </div>
           </div>
-          <div id="r-ceiling-note" style="font-size:12px;color:var(--text-muted);margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border-tan)"></div>
-          <div id="r-user-action" style="display:none;margin-top:10px;padding:10px 14px;background:var(--gold-light);border-radius:8px;font-size:12px;color:var(--navy)"></div>
         </div>
 
       </div>
@@ -477,7 +536,7 @@ textarea { resize: vertical; min-height: 100px; font-family: var(--font-sans); f
 </div>
 
 <script>
-const BACKEND = 'https://craft-0oqz.onrender.com';
+const BACKEND = 'https://craft-prompt-coach.onrender.com';
 
 let history = JSON.parse(localStorage.getItem('craft_history')||'[]');
 let running = false;
@@ -733,71 +792,99 @@ async function runAnalysis() {
   // Populate results
   document.getElementById('results-section').style.display='block';
 
-  // Lift banner
-  if(complete.prompt_lift!==undefined) {
-    document.getElementById('r-lift-banner').style.display='flex';
-    const pl = complete.prompt_lift||0;
-    const ol = complete.output_lift||0;
-    document.getElementById('r-prompt-lift').textContent = (pl>=0?'+':'')+pl+'pp';
-    document.getElementById('r-prompt-lift').className = 'lift-number '+(pl>=0?'positive':'negative');
-    document.getElementById('r-output-lift').textContent = (ol>=0?'+':'')+ol+'pp';
-    document.getElementById('r-output-lift').className = 'lift-number '+(ol>=0?'positive':'negative');
-    document.getElementById('r-lift-summary').textContent =
-      `Prompt quality improved from ${complete.prompt_score_before||0} to ${complete.prompt_score_after||0} out of 100. Output quality improved from ${complete.output_score_before||0} to ${complete.output_score_after||0} out of 100. Ceiling score with available information: ${complete.ceiling_score||0}/100.`;
-  }
+  // Score banner
+  const pb = Math.round(complete.prompt_score_before||0);
+  const pa = Math.round(complete.prompt_score_after||0);
+  const pl = Math.round(complete.prompt_lift||0);
+  const ol = Math.round(complete.output_lift||0);
+  const cs = Math.round(complete.ceiling_score||0);
+
+  document.getElementById('r-lift-banner').style.display='block';
+  document.getElementById('r-score-before').textContent = pb+'/100';
+  document.getElementById('r-score-after').textContent = pa+'/100';
+  document.getElementById('r-prompt-lift').textContent = (pl>=0?'+':'')+pl+'pp';
+  document.getElementById('r-prompt-lift').style.color = pl>=0 ? '#729985' : 'var(--terracotta)';
+  document.getElementById('r-output-lift').textContent = (ol>=0?'+':'')+ol+'pp';
+  document.getElementById('r-output-lift').style.color = ol>=0 ? '#729985' : 'var(--terracotta)';
+  document.getElementById('r-ceiling').textContent = cs+'/100';
 
   // Prompts
-  document.getElementById('r-orig-prompt').textContent = prompt+(context?'\n\n[Context provided]':'');
-  document.getElementById('r-orig-prompt-score').textContent = (originalAudit.total_score||0)+'/100';
+  document.getElementById('r-orig-prompt').textContent = prompt+(context?'\n\nContext:\n'+context:'');
+  document.getElementById('r-orig-prompt-score').textContent = pb+'/100';
+  document.getElementById('r-orig-summary').textContent = originalAudit.summary||'';
   document.getElementById('r-new-prompt').textContent = rewriteData.rewritten_prompt||'';
-  document.getElementById('r-new-prompt-score').textContent = (improvedAudit.total_score||0)+'/100';
+  document.getElementById('r-new-prompt-score').textContent = pa+'/100';
+  document.getElementById('r-new-summary').textContent = improvedAudit.summary||'';
 
   // Outputs
+  const origScore = Math.round(originalEval.total_score||0);
+  const newScore  = Math.round(improvedEval.total_score||0);
   document.getElementById('r-orig-output').textContent = originalOutput;
-  document.getElementById('r-orig-output-score').textContent = (originalEval.total_score||0)+'/100';
+  document.getElementById('r-orig-output-score').textContent = origScore+'/100';
   document.getElementById('r-new-output').textContent = improvedOutput;
-  document.getElementById('r-new-output-score').textContent = (improvedEval.total_score||0)+'/100';
+  document.getElementById('r-new-output-score').textContent = newScore+'/100';
 
-  // Changes
+  // Output dimension summaries
+  const origKey = (originalEval.key_failure && originalEval.key_failure !== 'null') ? originalEval.key_failure : null;
+  const newSummary = improvedEval.summary||'';
+  if(origKey) document.getElementById('r-orig-output-fail').textContent = 'Key issue: '+origKey;
+  if(newSummary) document.getElementById('r-new-output-win').textContent = newSummary;
+
+  // Changes list
   const changes = rewriteData.changes_made||[];
-  if(changes.length) {
-    document.getElementById('r-changes-section').style.display='block';
-    document.getElementById('r-changes-list').innerHTML = changes.map(c=>`
-      <div class="change-item">
-        <div class="change-dot auto"></div>
-        <div class="change-text">
-          <div>${c.change||''}</div>
-          <div class="change-reason">${c.reason||''}</div>
-        </div>
-      </div>`).join('');
-  }
-
-  // Placeholders
   const placeholders = rewriteData.placeholders_added||[];
-  if(placeholders.length) {
-    document.getElementById('r-placeholders-section').style.display='block';
-    document.getElementById('r-placeholders-list').innerHTML = placeholders.map(p=>`
-      <div class="placeholder-item">
-        <span class="placeholder-tag">${p.placeholder||''}</span>
-        <span>${p.what_to_fill||''}</span>
-      </div>`).join('');
+  if(changes.length || placeholders.length) {
+    document.getElementById('r-explanation-card').style.display='block';
+    if(changes.length) {
+      document.getElementById('r-changes-list').innerHTML = changes.map(c=>`
+        <div class="change-item">
+          <div class="change-dot auto"></div>
+          <div class="change-text">
+            <div style="font-weight:500">${c.change||''}</div>
+            <div class="change-reason">${c.reason||''}</div>
+          </div>
+        </div>`).join('');
+    }
+    if(placeholders.length) {
+      document.getElementById('r-placeholders-section').style.display='block';
+      document.getElementById('r-placeholders-list').innerHTML = placeholders.map(p=>`
+        <div class="placeholder-item">
+          <span class="placeholder-tag">${p.placeholder||''}</span>
+          <span>${p.what_to_fill||''}</span>
+        </div>`).join('');
+    }
+    if(originalAudit.ceiling_note) {
+      document.getElementById('r-ceiling-note').textContent = originalAudit.ceiling_note;
+    }
+    if(rewriteData.user_action_required) {
+      const ua = document.getElementById('r-user-action');
+      ua.style.display='block';
+      ua.innerHTML='<strong>To reach your ceiling score of '+cs+'/100:</strong> '+rewriteData.user_action_required;
+    }
   }
 
-  // Criteria tables
-  renderCriteriaTable(originalAudit,'r-orig-criteria');
-  renderCriteriaTable(improvedAudit,'r-new-criteria');
-
-  // Ceiling note
-  if(originalAudit.ceiling_note) {
-    document.getElementById('r-ceiling-note').textContent = originalAudit.ceiling_note;
+  // Score bars
+  function renderBars(auditData, containerId, color) {
+    const el = document.getElementById(containerId);
+    if(!el||!auditData) return;
+    const scores = {...(auditData.criteria_scores||{}), ...(auditData.bonus_scores||{})};
+    el.innerHTML = Object.entries(scores).map(([k,v])=>{
+      const score = v.score||0;
+      const barColor = score>=70 ? '#729985' : score>=40 ? '#C9A84C' : '#C4673A';
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+          <span style="color:var(--navy);font-weight:500">${k.replace(/_/g,' ')}</span>
+          <span style="color:${barColor};font-weight:500">${score}/100</span>
+        </div>
+        <div style="height:6px;background:var(--tan-light);border-radius:3px;overflow:hidden">
+          <div style="width:${score}%;height:100%;background:${barColor};border-radius:3px;transition:width 0.4s"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:3px">${v.feedback||''}</div>
+      </div>`;
+    }).join('');
   }
-
-  // User action
-  if(rewriteData.user_action_required) {
-    const ua = document.getElementById('r-user-action');
-    ua.style.display='block';
-    ua.innerHTML='<strong>To reach ceiling score:</strong> '+rewriteData.user_action_required;
-  }
+  renderBars(originalAudit,'r-orig-criteria-bars','terracotta');
+  renderBars(improvedAudit,'r-new-criteria-bars','sage');
 
   // Save to history
   const historyEntry = {
