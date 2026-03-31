@@ -477,7 +477,7 @@ textarea { resize: vertical; min-height: 100px; font-family: var(--font-sans); f
 </div>
 
 <script>
-const BACKEND = 'https://craft-0oqz.onrender.com';
+const BACKEND = 'https://craft-prompt-coach.onrender.com';
 
 let history = JSON.parse(localStorage.getItem('craft_history')||'[]');
 let running = false;
@@ -668,6 +668,7 @@ async function runAnalysis() {
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
+    let currentEventType = '';
 
     while(true) {
       const {done,value} = await reader.read();
@@ -677,11 +678,14 @@ async function runAnalysis() {
       buffer = lines.pop();
 
       for(const line of lines) {
+        if(line.startsWith('event:')) { currentEventType = line.slice(6).trim(); continue; }
         if(!line.startsWith('data:')) continue;
         const raw = line.slice(5).trim();
         if(!raw) continue;
         let msg;
         try { msg=JSON.parse(raw); } catch { continue; }
+        if(!msg.event && currentEventType) msg.event = currentEventType;
+        currentEventType = '';
 
         if(msg.event==='step') {
           setStep(msg.step,'active','Running...');
