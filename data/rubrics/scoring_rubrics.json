@@ -1,0 +1,139 @@
+{
+  "universal_criteria": {
+    "clarity_of_intent": {
+      "weight": 20,
+      "description": "Can the system clearly identify what is being asked?",
+      "indicators_present": [
+        "Clear action verb at the start or early in prompt",
+        "Single primary goal stated",
+        "No contradictory instructions"
+      ],
+      "indicators_missing": [
+        "Vague opening with no clear task",
+        "Multiple conflicting goals",
+        "Ambiguous pronouns with no referent"
+      ]
+    },
+    "context_completeness": {
+      "weight": 30,
+      "description": "Does the prompt provide who, what, constraints, and desired output?",
+      "indicators_present": [
+        "User role or background stated",
+        "Relevant situation or document provided",
+        "Key constraints mentioned",
+        "Success criteria implied or stated"
+      ],
+      "indicators_missing": [
+        "No role or background context",
+        "Missing situational details",
+        "No constraints mentioned",
+        "No indication of what a good answer looks like"
+      ]
+    },
+    "specificity": {
+      "weight": 20,
+      "description": "Does the prompt constrain the solution space appropriately for the task?",
+      "indicators_present": [
+        "Scope is bounded",
+        "Key terms are defined",
+        "Edge cases addressed"
+      ],
+      "indicators_missing": [
+        "Scope is open-ended when it should not be",
+        "Jargon used without definition",
+        "No handling of ambiguous cases"
+      ]
+    },
+    "output_specification": {
+      "weight": 30,
+      "description": "Does the prompt tell the system what a good response looks like?",
+      "indicators_present": [
+        "Format specified",
+        "Length or depth indicated",
+        "Audience for the output identified"
+      ],
+      "indicators_missing": [
+        "No format specified",
+        "No length or depth guidance",
+        "Audience not identified"
+      ]
+    }
+  },
+  "task_modifiers": {
+    "extraction": {
+      "description": "Pulling structured data from unstructured text",
+      "examples": ["Extract fields from a document", "Convert report to spreadsheet", "Parse contract clauses"],
+      "weight_adjustments": {
+        "output_specification": 15,
+        "specificity": 10,
+        "clarity_of_intent": -5,
+        "context_completeness": -20
+      },
+      "bonus_criteria": {
+        "schema_defined": {"weight": 15, "description": "Required output fields explicitly listed"},
+        "null_handling": {"weight": 5, "description": "Instructions for missing or ambiguous values"}
+      },
+      "ceiling_note": "Extraction prompts can reach 100% with complete schema and null handling."
+    },
+    "reasoning": {
+      "description": "Analyzing situations, evaluating options, explaining decisions",
+      "examples": ["How does FMLA apply to this employee?", "Should we pursue this vendor?", "Why did this system fail?"],
+      "weight_adjustments": {
+        "context_completeness": 15,
+        "output_specification": 5,
+        "specificity": -10,
+        "clarity_of_intent": -10
+      },
+      "bonus_criteria": {
+        "situation_detail": {"weight": 10, "description": "Specific facts of the situation provided"},
+        "constraints_stated": {"weight": 5, "description": "Applicable rules, policies, or limits mentioned"}
+      },
+      "ceiling_note": "Reasoning prompts rarely reach 100% because domain context only the user has cannot be inferred."
+    },
+    "generation": {
+      "description": "Drafting content, writing documents, creating communications",
+      "examples": ["Write an email to a client", "Draft a policy", "Create a job description"],
+      "weight_adjustments": {
+        "output_specification": 10,
+        "context_completeness": 5,
+        "specificity": -5,
+        "clarity_of_intent": -10
+      },
+      "bonus_criteria": {
+        "tone_specified": {"weight": 8, "description": "Tone or voice instructions provided"},
+        "audience_defined": {"weight": 7, "description": "Target reader clearly identified"}
+      },
+      "ceiling_note": "Generation prompts can reach high scores but tone and audience are often missing."
+    },
+    "ideation": {
+      "description": "Brainstorming, exploring options, generating creative solutions",
+      "examples": ["Ideas for a new feature", "Ways to solve this problem", "Approaches to restructure this team"],
+      "weight_adjustments": {
+        "specificity": -15,
+        "context_completeness": 10,
+        "output_specification": -5,
+        "clarity_of_intent": 10
+      },
+      "bonus_criteria": {
+        "constraints_for_feasibility": {"weight": 8, "description": "Budget, timeline, or technical constraints provided"},
+        "evaluation_criteria": {"weight": 7, "description": "How ideas should be evaluated stated"}
+      },
+      "ceiling_note": "Ideation prompts should not be over-specified. Over-constraint penalizes score."
+    },
+    "conversational": {
+      "description": "Questions, explanations, coaching, policy guidance",
+      "examples": ["How do I handle this situation?", "Explain this concept", "What should I do about this employee?"],
+      "weight_adjustments": {
+        "context_completeness": 20,
+        "output_specification": -10,
+        "specificity": -5,
+        "clarity_of_intent": -5
+      },
+      "bonus_criteria": {
+        "role_context": {"weight": 8, "description": "User role and experience level stated"},
+        "desired_depth": {"weight": 7, "description": "How detailed or simple the answer should be"}
+      },
+      "ceiling_note": "Conversational prompts depend heavily on user-supplied context. System can scaffold but not invent facts."
+    }
+  }
+}
