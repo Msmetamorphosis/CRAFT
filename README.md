@@ -44,20 +44,6 @@ CRAFT operationalizes that finding into a practical tool for enterprise users.
 
 **Ceiling score:** The maximum score achievable with the information provided. Some gaps can only be filled by the user. CRAFT shows you exactly what those are.
 
----
-
-## Deploy
-
-### Backend (Render)
-1. Connect this repo to Render
-2. Render reads `render.yaml` automatically
-3. Deploy. Backend URL: `https://craft-prompt-coach.onrender.com`
-
-### Frontend (GitHub Pages)
-1. Settings → Pages → Deploy from branch → main → /frontend
-2. Dashboard URL: `https://yourusername.github.io/craft`
-
----
 
 ## Related project
 
