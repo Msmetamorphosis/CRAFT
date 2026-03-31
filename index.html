@@ -536,7 +536,7 @@ textarea { resize: vertical; min-height: 100px; font-family: var(--font-sans); f
 </div>
 
 <script>
-const BACKEND = 'https://craft-0oqz.onrender.com';
+const BACKEND = 'https://craft-prompt-coach.onrender.com';
 
 let history = JSON.parse(localStorage.getItem('craft_history')||'[]');
 let running = false;
@@ -731,10 +731,11 @@ async function runAnalysis() {
 
     while(true) {
       const {done,value} = await reader.read();
-      if(done) break;
-      buffer += decoder.decode(value,{stream:true});
+      if(value) buffer += decoder.decode(value,{stream:true});
+      
+      // Process all complete lines in buffer
       const lines = buffer.split('\n');
-      buffer = lines.pop();
+      buffer = done ? '' : lines.pop(); // if done, process everything; otherwise keep last incomplete line
 
       for(const line of lines) {
         if(line.startsWith('event:')) { currentEventType = line.slice(6).trim(); continue; }
@@ -779,6 +780,7 @@ async function runAnalysis() {
           complete = msg;
         }
       }
+      if(done) break;
     }
   } catch(e) {
     alert('Connection error: '+e.message+'\n\nMake sure the backend is running at '+BACKEND);
