@@ -59,3 +59,5 @@ prompt-level interventions, specifically completeness auditing and task-appropri
 rewriting, improve output quality across enterprise task types. The hypothesis is that
 improvement will be largest for reasoning and conversational tasks, which are the most
 underspecified in practice.
+
+Try it for yourself, just add your Anthropic API key and go: https://msmetamorphosis.github.io/CRAFT/
